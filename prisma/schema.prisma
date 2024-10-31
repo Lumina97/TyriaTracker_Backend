@@ -33,13 +33,13 @@ model RaidEvent {
 
 model Dungeon{
   id Int @id@default(autoincrement())
-  name String 
+  name String @unique
   paths DungeonPath[]
 }
 
 model DungeonPath {
   id Int @id@default(autoincrement())
-  name String
+  name String @unique
   type  String
   Dungeon Dungeon @relation(fields: [DungeonID], references: [id])
   DungeonID Int
@@ -50,7 +50,7 @@ model Worldbosses {
   name  String
 }
 
-model DailyCraftin {
+model DailyCrafting {
   id Int @id@default(autoincrement())
   name  String
 }
