@@ -1,5 +1,8 @@
 import { NextFunction, query, Request, Response } from "express";
 import { AnyZodObject, string, z } from "zod";
+import bcrypt from "bcrypt";
+
+const encryptSaltRounds = 11;
 
 export const createUserSchema = z.object({
   body: z.object({
@@ -35,10 +38,12 @@ export const userPartialSchema = z.object({
   params: z.object({
     email: z.string({ required_error: "Email is required in params!" }),
   }),
-  body: z.object({
-    password: z.string().optional(),
-    apiKey: z.string().optional(),
-  }),
+  body: z
+    .object({
+      password: z.string().optional(),
+      APIKey: z.string().optional(),
+    })
+    .strict(),
 });
 
 export const validatePartialUser = (schema: AnyZodObject) => {
@@ -50,7 +55,6 @@ export const validatePartialUser = (schema: AnyZodObject) => {
     try {
       await schema.parseAsync({
         body: req.body,
-        query: req.query,
         params: req.params,
       });
       return next();
@@ -58,4 +62,8 @@ export const validatePartialUser = (schema: AnyZodObject) => {
       res.status(400).json({ message: "Validation has failed", error: error });
     }
   };
+};
+
+export const encryptPassword = (password: string) => {
+  return bcrypt.hash(password, encryptSaltRounds);
 };
