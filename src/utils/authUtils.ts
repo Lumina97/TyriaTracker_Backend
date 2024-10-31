@@ -1,6 +1,7 @@
 import { NextFunction, query, Request, Response } from "express";
 import { AnyZodObject, string, z } from "zod";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const encryptSaltRounds = 11;
 
@@ -40,6 +41,7 @@ export const userPartialSchema = z.object({
   }),
   body: z
     .object({
+      jwt: z.string({ required_error: "json web token is required in body!" }),
       password: z.string().optional(),
       APIKey: z.string().optional(),
     })
@@ -66,4 +68,44 @@ export const validatePartialUser = (schema: AnyZodObject) => {
 
 export const encryptPassword = (password: string) => {
   return bcrypt.hash(password, encryptSaltRounds);
+};
+
+export const validatePassword = (password: string, passwordHash: string) => {
+  return bcrypt.compare(password, passwordHash);
+};
+
+export const CreateJWTFromEmail = (email: string) => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    console.error("Could not read JWT secret from env file");
+    return false;
+  }
+
+  return jwt.sign({ email: email }, secret);
+};
+
+export const ValidateJWT = (token: string) => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    console.error("Could not read JWT secret from env file");
+    return false;
+  }
+
+  try {
+    return jwt.verify(token, secret);
+  } catch (error) {
+    return false;
+  }
+};
+
+export const isUserAuthorized = (
+  jwt: string,
+  email: string,
+  userEmail: string
+) => {
+  const valid = ValidateJWT(jwt);
+  if (valid === false || (valid as { email: string }).email !== userEmail) {
+    return false;
+  }
+  return true;
 };

@@ -1,5 +1,6 @@
 import express from "express";
 import { Authentication } from "./Routers/Authentication";
+import { ValidateJWT } from "./utils/authUtils";
 
 const app = express();
 const port = 3030;

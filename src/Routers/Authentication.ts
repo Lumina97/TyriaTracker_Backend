@@ -5,8 +5,14 @@ import {
   validateCreateUser,
   validatePartialUser,
   encryptPassword,
+  CreateJWTFromEmail,
+  validatePassword,
+  ValidateJWT,
+  isUserAuthorized,
 } from "../utils/authUtils";
 import { PrismaClient } from "@prisma/client";
+import { validateRequest } from "zod-express-middleware";
+import { z } from "zod";
 
 const prisma = new PrismaClient();
 
@@ -27,26 +33,44 @@ Authentication.post(
   "/auth/users",
   validateCreateUser(createUserSchema),
   async (req: Request, res: Response) => {
-    const user = await getUser(req.body.email);
+    const email = req.body.email;
+    const user = await getUser(email);
     if (user) {
       console.error("could not create user. Already existed!");
       res.status(400).json({ error: "Could not create user" });
       return;
     }
 
+    let hadCreationError = false;
     const passwordHash = await encryptPassword(req.body.password);
-    1;
-    prisma.user
+
+    await prisma.user
       .create({
         data: {
-          email: req.body.email,
+          email: email,
           passwordHash: passwordHash,
         },
       })
-      .then((newUser) => {
-        console.log(`Create new user: ${newUser}`);
-        res.status(200).json(newUser);
+      .catch((error) => {
+        console.error(`Failed to create new user! ${error}`);
+        hadCreationError = true;
       });
+
+    //create JWT token for new account creations
+    //so user does not have to sign in right after
+    const jwt = CreateJWTFromEmail(email);
+    if (jwt === false) hadCreationError = true;
+
+    if (hadCreationError) {
+      res.status(400).json({
+        status: false,
+        message: "There was an error creating user!",
+      });
+      return;
+    }
+
+    console.log(`Created user ${email}`);
+    res.status(200).json({ status: true, message: "User Created!", jwt: jwt });
   }
 );
 
@@ -55,16 +79,19 @@ Authentication.patch(
   "/auth/users/:email",
   validatePartialUser(userPartialSchema),
   async (req, res) => {
-    //check for user existance
-    if (!(await getUser(req.params.email))) {
-      res.status(400).json({ status: false, message: "User does not exist!" });
+    const { email, jwt, password, APIKey } = req.body;
+
+    //check for user existance and if user is authorized to edit requested file
+    const user = await getUser(req.params.email);
+    if (!user || !isUserAuthorized(jwt, email, user.email)) {
+      res
+        .status(400)
+        .json({ status: false, message: "User is not autorized!" });
       return;
     }
 
-    let passwordHash = req.body.password;
-    if (passwordHash) passwordHash = await encryptPassword(passwordHash);
-
-    const APIKey = req.body.APIKey;
+    let passwordHash = "";
+    if (password) passwordHash = await encryptPassword(passwordHash);
 
     //update user with params
     const updated = await prisma.user.update({
@@ -86,7 +113,18 @@ Authentication.patch(
 Authentication.delete(
   "/auth/users/:email",
   validatePartialUser(userPartialSchema),
-  (req: Request, res: Response) => {
+  async (req: Request, res: Response) => {
+    const { email, jwt } = req.body;
+
+    //check for user existance and if user is authorized to edit requested file
+    const user = await getUser(req.params.email);
+    if (!user || !isUserAuthorized(jwt, email, user.email)) {
+      res
+        .status(400)
+        .json({ status: false, message: "User is not autorized!" });
+      return;
+    }
+
     prisma.user
       .delete({
         where: {
@@ -124,7 +162,38 @@ Authentication.get(
 );
 
 //logIn User
-Authentication.post("/auth/login", (req, res) => {});
+Authentication.post(
+  "/auth/login",
+  validateRequest({
+    body: z
+      .object({
+        email: z.string({ required_error: "Email is required in body!" }),
+        password: z.string({ required_error: "Password is required in body!" }),
+      })
+      .strict(),
+  }),
+  async (req: Request, res: Response) => {
+    console.log("login request");
+    const { email, password } = req.body;
+
+    try {
+      const user = await getUser(email);
+      if (!user) {
+        res.status(400).json({ status: false, message: "Could not log in!" });
+        return;
+      }
+
+      validatePassword(password, user.passwordHash).then(() => {
+        const token = CreateJWTFromEmail(email);
+        res
+          .status(200)
+          .json({ status: true, message: "You have logged in!", jwt: token });
+      });
+    } catch (error) {
+      res.status(400).json({ status: false, message: "Could not log in!" });
+    }
+  }
+);
 
 //logOut User
 Authentication.post("/auth/logout", (req, res) => {});
