@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id Int @id@default(autoincrement())
+  email String @unique
+  passwordHash String 
+  APIKey String?
+}
+
+model RaidWing {
+  id Int @id@default(autoincrement())
+  name String
+  events RaidEvent[]
+}
+
+model RaidEvent {
+  id Int @id@default(autoincrement())
+  name String
+  type String
+  RaidWing RaidWing @relation(fields: [RaidWingID],references: [id])
+  RaidWingID Int
+}
+
+model Dungeon{
+  id Int @id@default(autoincrement())
+  name String 
+  paths DungeonPath[]
+}
+
+model DungeonPath {
+  id Int @id@default(autoincrement())
+  name String
+  type  String
+  Dungeon Dungeon @relation(fields: [DungeonID], references: [id])
+  DungeonID Int
+}
+
+model Worldbosses {
+  id Int @id@default(autoincrement())
+  name  String
+}
+
+model DailyCraftin {
+  id Int @id@default(autoincrement())
+  name  String
+}
+

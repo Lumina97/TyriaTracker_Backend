@@ -1,0 +1,25 @@
+Database:
+(Saved From GW2 API and refreshed once a day to keep up to date with data)
+    User:
+        ID:
+        Email:
+        Password:
+        API Key:
+
+    RaidWings:
+        name:
+        events:
+            id:
+            type: "Event | boss"
+    
+    Dungeons:
+        Name:
+        Paths:
+            Name
+            Type: "Story | Explorable"
+
+    WordBosses:
+        Name:
+
+    DailyCrafting:
+        name:

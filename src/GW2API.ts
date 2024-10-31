@@ -7,10 +7,6 @@ const api: GW2Api = new GW2Api({
 });
 
 export const getDungeons = async () => {
-	await api.dungeons.get("all")
-    .then((result) => {
-        result.paths.map((path) => {
-            console.log(path.name);
-        }) 
-    });
+	await api.dailyCrafting.get().then(result => console.log(result))
+  
 };
