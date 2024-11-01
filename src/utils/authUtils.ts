@@ -98,13 +98,9 @@ export const ValidateJWT = (token: string) => {
   }
 };
 
-export const isUserAuthorized = (
-  jwt: string,
-  email: string,
-  userEmail: string
-) => {
+export const isUserAuthorized = (email: string, jwt: string) => {
   const valid = ValidateJWT(jwt);
-  if (valid === false || (valid as { email: string }).email !== userEmail) {
+  if (valid === false || (valid as { email: string }).email !== email) {
     return false;
   }
   return true;

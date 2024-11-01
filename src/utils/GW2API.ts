@@ -1,9 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, RaidWing } from "@prisma/client";
 import { GW2Api, ApiLanguage } from "guildwars2-ts";
 
 const prisma = new PrismaClient();
 const api: GW2Api = new GW2Api({
-  token: "YOUR-TOKEN-HERE",
+  token:
+    "3EA9CEC1-5DD9-004A-9801-FD43E868DFF393853EE8-CB9E-4D84-9C5F-1B6422E090C1",
   language: ApiLanguage.English,
   rateLimitRetry: true,
 });
@@ -89,4 +90,24 @@ export const updateWorldBossesFromGW2API = async () => {
       }
     });
   });
+};
+
+export const getUserDailyCrafts = async (apiKey: string) => {
+  const userAPI = new GW2Api({
+    token: apiKey,
+    language: ApiLanguage.English,
+    rateLimitRetry: true,
+  });
+
+  return await userAPI.account.getDailyCrafts();
+};
+
+export const getUserWorldBosses = async (apiKey: string) => {
+  const userAPI = new GW2Api({
+    token: apiKey,
+    language: ApiLanguage.English,
+    rateLimitRetry: true,
+  });
+
+  return await userAPI.account.getWorldBosses();
 };

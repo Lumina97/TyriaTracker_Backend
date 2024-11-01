@@ -7,7 +7,6 @@ import {
   encryptPassword,
   CreateJWTFromEmail,
   validatePassword,
-  ValidateJWT,
   isUserAuthorized,
 } from "../utils/authUtils";
 import { PrismaClient } from "@prisma/client";
@@ -15,7 +14,6 @@ import { validateRequest } from "zod-express-middleware";
 import { z } from "zod";
 
 const prisma = new PrismaClient();
-
 const Authentication = Router();
 
 const getUser = async (email: string) => {
@@ -79,11 +77,13 @@ Authentication.patch(
   "/auth/users/:email",
   validatePartialUser(userPartialSchema),
   async (req, res) => {
-    const { email, jwt, password, APIKey } = req.body;
+    const { email } = req.params;
+    const { jwt, password, APIKey } = req.body;
 
+    console.log(`user: ${email} , ${jwt}`);
     //check for user existance and if user is authorized to edit requested file
-    const user = await getUser(req.params.email);
-    if (!user || !isUserAuthorized(jwt, email, user.email)) {
+    const isAuth = await isUserAuthorized(email, jwt);
+    if (isAuth === false) {
       res
         .status(400)
         .json({ status: false, message: "User is not autorized!" });
@@ -117,8 +117,8 @@ Authentication.delete(
     const { email, jwt } = req.body;
 
     //check for user existance and if user is authorized to edit requested file
-    const user = await getUser(req.params.email);
-    if (!user || !isUserAuthorized(jwt, email, user.email)) {
+    const isAuth = await isUserAuthorized(email, jwt);
+    if (isAuth === false) {
       res
         .status(400)
         .json({ status: false, message: "User is not autorized!" });
