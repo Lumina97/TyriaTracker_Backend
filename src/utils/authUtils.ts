@@ -94,6 +94,7 @@ export const ValidateJWT = (token: string) => {
   try {
     return jwt.verify(token, secret);
   } catch (error) {
+    console.log(error);
     return false;
   }
 };
