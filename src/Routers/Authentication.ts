@@ -1,4 +1,4 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import {
   userPartialSchema,
   createUserSchema,
@@ -32,6 +32,24 @@ const getUser = async (email: string) => {
   });
 
   return user;
+};
+
+const checkIfUserIsAuthorized = () => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    const newUser = req.body.newUser;
+    const jwt = newUser ? newUser.jwt : req.body.jwt;
+    const { email } = req.params;
+
+    const isAuth = await isUserAuthorized(email, jwt);
+    if (isAuth === false) {
+      console.log(`is not authorized`);
+      res
+        .status(403)
+        .json({ status: false, message: "User is not autorized!" });
+      return;
+    }
+    next();
+  };
 };
 
 //Create new user
@@ -99,20 +117,10 @@ Authentication.patch(
       }),
     }),
   }),
+  checkIfUserIsAuthorized(),
   async (req, res) => {
     const { email } = req.params;
     const { newUser } = req.body;
-
-    console.log(`updating user: ${email} ,\n ${newUser.jwt}`);
-    //check for user existance and if user is authorized to edit requested file
-    const isAuth = await isUserAuthorized(email, newUser.jwt);
-    if (isAuth === false) {
-      console.log(`is not authorized`);
-      res
-        .status(400)
-        .json({ status: false, message: "User is not autorized!" });
-      return;
-    }
 
     //check if password changed and create a new hash if so
     let passwordHash = "";
@@ -165,34 +173,21 @@ Authentication.patch(
 Authentication.delete(
   "/auth/users/:email",
   validatePartialUser(userPartialSchema),
+  checkIfUserIsAuthorized(),
   async (req: Request, res: Response) => {
-    const { email, jwt } = req.body;
-
-    //check for user existance and if user is authorized to edit requested file
-    const isAuth = await isUserAuthorized(email, jwt);
-    if (isAuth === false) {
-      res
-        .status(400)
-        .json({ status: false, message: "User is not autorized!" });
-      return;
-    }
-
+    const { email } = req.body;
     prisma.user
       .delete({
         where: {
-          email: req.params.email,
+          email: email,
         },
       })
       .then(() => {
-        res
-          .status(200)
-          .json({ message: `Successfully deleted user ${req.params.email}` });
+        res.status(200).json({ message: `Successfully deleted user ${email}` });
       })
       .catch((error) => {
         console.error(`Error during delete request ${error}`);
-        res
-          .status(400)
-          .json({ message: `Failed to delete user ${req.params.email}` });
+        res.status(400).json({ message: `Failed to delete user ${email}` });
       });
   }
 );
@@ -201,6 +196,7 @@ Authentication.delete(
 Authentication.get(
   "/auth/users/:email",
   validatePartialUser(userPartialSchema),
+  checkIfUserIsAuthorized(),
   async (req: Request, res: Response) => {
     const user = await getUser(req.params.email);
     if (user) {

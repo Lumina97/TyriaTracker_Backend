@@ -111,3 +111,41 @@ export const getUserWorldBosses = async (apiKey: string) => {
 
   return await userAPI.account.getWorldBosses();
 };
+
+export const getUserRaids = async (apiKey: string) => {
+  const userAPI = new GW2Api({
+    token: apiKey,
+    language: ApiLanguage.English,
+    rateLimitRetry: true,
+  });
+
+  return await userAPI.account.getRaids();
+};
+
+export const getUserWizardVault = async (apiKey: string) => {
+  const userAPI = new GW2Api({
+    token: apiKey,
+    language: ApiLanguage.English,
+    rateLimitRetry: true,
+  });
+
+  const daily = await userAPI.account.getWizardsVaultDaily();
+  const weekly = await userAPI.account.getWizardsVaultWeekly();
+  const special = await userAPI.account.getWizardsVaultSpecial();
+  const vault = {
+    daily,
+    weekly,
+    special,
+  };
+  return vault;
+};
+
+export const getUserDungeons = async (apiKey: string) => {
+  const userAPI = new GW2Api({
+    token: apiKey,
+    language: ApiLanguage.English,
+    rateLimitRetry: true,
+  });
+
+  return await userAPI.account.getDungeons();
+};
