@@ -12,23 +12,30 @@ const api: GW2Api = new GW2Api({
 export const updateDungeonsFromGW2API = async () => {
   await api.dungeons.get("all").then((dungeons) => {
     dungeons.map(async (dungeon) => {
-      try {
-        console.log(dungeon);
-        const newDungeon = await prisma.dungeon.create({
-          data: {
-            name: dungeon.id,
-            paths: {
-              create: dungeon.paths.map((path) => ({
-                name: path.id,
-                type: path.type,
-              })),
+      const exists = await prisma.dailyCrafting.findFirst({
+        where: {
+          name: dungeon.id,
+        },
+      });
+      if (!exists) {
+        try {
+          console.log(dungeon);
+          const newDungeon = await prisma.dungeon.create({
+            data: {
+              name: dungeon.id,
+              paths: {
+                create: dungeon.paths.map((path) => ({
+                  name: path.id,
+                  type: path.type,
+                })),
+              },
             },
-          },
-        });
-        console.log("Dungeon created:", newDungeon);
-      } catch (error) {
-        console.error("Error creating dungeon:", error);
-      }
+          });
+          console.log("Dungeon created:", newDungeon);
+        } catch (error) {
+          console.error("Error creating dungeon:", error);
+        }
+      } else console.log("Dungeon already saved!");
     });
   });
 };
@@ -37,22 +44,30 @@ export const updateRaidsFromGW2API = async () => {
   await api.raids.get("all").then((raids) => {
     raids.map((raid) => {
       raid.wings.map(async (wing) => {
-        try {
-          const newRaid = await prisma.raidWing.create({
-            data: {
-              name: wing.id,
-              events: {
-                create: wing.events.map((event) => ({
-                  name: event.id,
-                  type: event.type,
-                })),
+        const exists = await prisma.raidWing.findFirst({
+          where: {
+            name: wing.id,
+          },
+        });
+
+        if (!exists) {
+          try {
+            const newRaid = await prisma.raidWing.create({
+              data: {
+                name: wing.id,
+                events: {
+                  create: wing.events.map((event) => ({
+                    name: event.id,
+                    type: event.type,
+                  })),
+                },
               },
-            },
-          });
-          console.log("Raid created:", newRaid);
-        } catch (error) {
-          console.error("Error creating Raid:", error);
-        }
+            });
+            console.log("Raid created:", newRaid);
+          } catch (error) {
+            console.error("Error creating Raid:", error);
+          }
+        } else console.log("Raid already saved!");
       });
     });
   });
@@ -61,16 +76,24 @@ export const updateRaidsFromGW2API = async () => {
 export const updateDailyCraftingFromGW2API = async () => {
   await api.dailyCrafting.get().then((crafts) => {
     crafts.map(async (craft) => {
-      try {
-        const newCraft = await prisma.dailyCrafting.create({
-          data: {
-            name: craft,
-          },
-        });
-        console.log("Daily Craft created:", newCraft);
-      } catch (error) {
-        console.error("Error creating Daily Craft:", error);
-      }
+      const exists = await prisma.dailyCrafting.findFirst({
+        where: {
+          name: craft,
+        },
+      });
+
+      if (!exists) {
+        try {
+          const newCraft = await prisma.dailyCrafting.create({
+            data: {
+              name: craft,
+            },
+          });
+          console.log("Daily Craft created:", newCraft);
+        } catch (error) {
+          console.error("Error creating Daily Craft:", error);
+        }
+      } else console.log("Daily Craft already saved!");
     });
   });
 };
@@ -78,16 +101,23 @@ export const updateDailyCraftingFromGW2API = async () => {
 export const updateWorldBossesFromGW2API = async () => {
   await api.worldBosses.get().then((bosses) => {
     bosses.map(async (boss) => {
-      try {
-        const newCraft = await prisma.worldbosses.create({
-          data: {
-            name: boss,
-          },
-        });
-        console.log("Worldboss created:", newCraft);
-      } catch (error) {
-        console.error("Error creating Worldboss:", error);
-      }
+      const exists = await prisma.dailyCrafting.findFirst({
+        where: {
+          name: boss,
+        },
+      });
+      if (!exists) {
+        try {
+          const newCraft = await prisma.worldbosses.create({
+            data: {
+              name: boss,
+            },
+          });
+          console.log("WorldBoss created:", newCraft);
+        } catch (error) {
+          console.error("Error creating WorldBoss:", error);
+        }
+      } else console.log("WorldBoss already saved!");
     });
   });
 };

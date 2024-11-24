@@ -11,47 +11,46 @@ datasource db {
 }
 
 model User {
-  id Int @id@default(autoincrement())
-  email String @unique
-  passwordHash String 
-  APIKey String?
+  id           Int     @id @default(autoincrement())
+  email        String  @unique
+  passwordHash String
+  APIKey       String?
 }
 
 model RaidWing {
-  id Int @id@default(autoincrement())
-  name String
+  id     Int         @id @default(autoincrement())
+  name   String      @unique
   events RaidEvent[]
 }
 
 model RaidEvent {
-  id Int @id@default(autoincrement())
-  name String
-  type String
-  RaidWing RaidWing @relation(fields: [RaidWingID],references: [id])
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
+  type       String
+  RaidWing   RaidWing @relation(fields: [RaidWingID], references: [id])
   RaidWingID Int
 }
 
-model Dungeon{
-  id Int @id@default(autoincrement())
-  name String @unique
+model Dungeon {
+  id    Int           @id @default(autoincrement())
+  name  String        @unique
   paths DungeonPath[]
 }
 
 model DungeonPath {
-  id Int @id@default(autoincrement())
-  name String @unique
-  type  String
-  Dungeon Dungeon @relation(fields: [DungeonID], references: [id])
+  id        Int     @id @default(autoincrement())
+  name      String  @unique
+  type      String
+  Dungeon   Dungeon @relation(fields: [DungeonID], references: [id])
   DungeonID Int
 }
 
 model Worldbosses {
-  id Int @id@default(autoincrement())
-  name  String
+  id   Int    @id @default(autoincrement())
+  name String @unique
 }
 
 model DailyCrafting {
-  id Int @id@default(autoincrement())
-  name  String
+  id   Int    @id @default(autoincrement())
+  name String @unique
 }
-
