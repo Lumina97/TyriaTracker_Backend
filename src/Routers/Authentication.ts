@@ -337,6 +337,11 @@ Authentication.post(
   async (req: Request, res: Response) => {
     const { email, resetCode, newPassword } = req.body;
     const code = parseInt(resetCode);
+    console.log("code:");
+    console.log(code);
+    console.log("isInDict:");
+    console.log(email in passwordResetRequests);
+
     if (
       // email never made a request or given reset code was incorrect
       !(email in passwordResetRequests) ||
@@ -351,6 +356,7 @@ Authentication.post(
       return;
     }
 
+    console.log("Setting new password");
     //check if password changed and create a new hash if so
     let passwordHash = await encryptPassword(newPassword);
 

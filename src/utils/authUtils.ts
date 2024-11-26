@@ -1,6 +1,8 @@
 import { NextFunction, query, Request, Response } from "express";
 import { AnyZodObject, string, z } from "zod";
+//@ts-ignore
 import bcrypt from "bcrypt";
+//@ts-ignore
 import jwt from "jsonwebtoken";
 
 const encryptSaltRounds = 11;

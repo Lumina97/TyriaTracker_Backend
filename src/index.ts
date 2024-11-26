@@ -1,8 +1,9 @@
+//@ts-ignore
 import express from "express";
 import { Authentication } from "./Routers/Authentication";
+//@ts-ignore
 import cors from "cors";
 import { APIRouter } from "./Routers/API";
-import { updateRaidsFromGW2API } from "./utils/GW2API";
 
 const app = express();
 const port = 3030;
