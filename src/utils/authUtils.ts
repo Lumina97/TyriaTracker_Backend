@@ -1,5 +1,5 @@
-import { NextFunction, query, Request, Response } from "express";
-import { AnyZodObject, string, z } from "zod";
+import { NextFunction, Request, Response } from "express";
+import { AnyZodObject, z } from "zod";
 //@ts-ignore
 import bcrypt from "bcrypt";
 //@ts-ignore
@@ -14,6 +14,9 @@ export const createUserSchema = z.object({
       .email("Not a valid email"),
     password: z.string({
       required_error: "Password is required!",
+    }),
+    APIKey: z.string({
+      required_error: "API key is required to create account!",
     }),
   }),
 });

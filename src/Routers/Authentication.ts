@@ -13,12 +13,6 @@ import {
 import { PrismaClient } from "@prisma/client";
 import { validateRequest } from "zod-express-middleware";
 import { z } from "zod";
-import { Codec } from "node-ts";
-
-type TResetCodes = {
-  email: string;
-  code: number;
-};
 
 type TUser = {
   email?: string;
@@ -52,7 +46,7 @@ const checkIfUserIsAuthorized = () => {
       console.log(`is not authorized`);
       res
         .status(403)
-        .json({ status: false, message: "User is not autorized!" });
+        .json({ status: false, message: "User is not authorized!" });
       return;
     }
     next();
@@ -64,22 +58,26 @@ Authentication.post(
   "/auth/users",
   validateCreateUser(createUserSchema),
   async (req: Request, res: Response) => {
-    const email = req.body.email;
+    const { email, password, APIKey } = req.body;
+    console.log(`Account create request with email: ${email}`);
     const user = await getUser(email);
     if (user) {
       console.error("could not create user. Already existed!");
-      res.status(400).json({ error: "Could not create user" });
+      res
+        .status(409)
+        .json({ status: false, message: "Email is already in use!" });
       return;
     }
 
     let hadCreationError = false;
-    const passwordHash = await encryptPassword(req.body.password);
+    const passwordHash = await encryptPassword(password);
 
     await prisma.user
       .create({
         data: {
-          email: email,
-          passwordHash: passwordHash,
+          email,
+          passwordHash,
+          APIKey,
         },
       })
       .catch((error) => {
@@ -228,7 +226,7 @@ Authentication.post(
       .strict(),
   }),
   async (req: Request, res: Response) => {
-    console.log("login request");
+    console.log(`login request from email: ${req.body.email}`);
     const { email, password } = req.body;
 
     try {

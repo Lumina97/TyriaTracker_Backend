@@ -75,6 +75,9 @@ APIRouter.post(
   }),
   ValidateUserAndAPIKey(),
   async (req: Request, res: Response) => {
+    console.log(
+      `request from email: ${req.body.email} with key:\n${req.body.apiKey} `
+    );
     const userData = await getUserRaids(req.body.apiKey);
     const worldData = await prisma.raidWing.findMany({
       include: { events: true },

@@ -129,7 +129,12 @@ export const getUserDailyCrafts = async (apiKey: string) => {
     rateLimitRetry: true,
   });
 
-  return await userAPI.account.getDailyCrafts();
+  try {
+    return await userAPI.account.getDailyCrafts();
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
 };
 
 export const getUserWorldBosses = async (apiKey: string) => {
@@ -138,8 +143,12 @@ export const getUserWorldBosses = async (apiKey: string) => {
     language: ApiLanguage.English,
     rateLimitRetry: true,
   });
-
-  return await userAPI.account.getWorldBosses();
+  try {
+    return await userAPI.account.getWorldBosses();
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
 };
 
 export const getUserRaids = async (apiKey: string) => {
@@ -149,7 +158,12 @@ export const getUserRaids = async (apiKey: string) => {
     rateLimitRetry: true,
   });
 
-  return await userAPI.account.getRaids();
+  try {
+    return await userAPI.account.getRaids();
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
 };
 
 export const getUserWizardVault = async (apiKey: string) => {
@@ -159,15 +173,20 @@ export const getUserWizardVault = async (apiKey: string) => {
     rateLimitRetry: true,
   });
 
-  const daily = await userAPI.account.getWizardsVaultDaily();
-  const weekly = await userAPI.account.getWizardsVaultWeekly();
-  const special = await userAPI.account.getWizardsVaultSpecial();
-  const vault = {
-    daily,
-    weekly,
-    special,
-  };
-  return vault;
+  try {
+    const daily = await userAPI.account.getWizardsVaultDaily();
+    const weekly = await userAPI.account.getWizardsVaultWeekly();
+    const special = await userAPI.account.getWizardsVaultSpecial();
+    const vault = {
+      daily,
+      weekly,
+      special,
+    };
+    return vault;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
 };
 
 export const getUserDungeons = async (apiKey: string) => {
@@ -177,5 +196,10 @@ export const getUserDungeons = async (apiKey: string) => {
     rateLimitRetry: true,
   });
 
-  return await userAPI.account.getDungeons();
+  try {
+    return await userAPI.account.getDungeons();
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
 };
