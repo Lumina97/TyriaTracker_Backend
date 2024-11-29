@@ -13,6 +13,7 @@ import {
 import { PrismaClient } from "@prisma/client";
 import { validateRequest } from "zod-express-middleware";
 import { z } from "zod";
+import { SendEmail } from "../utils/emailUtils";
 
 type TUser = {
   email?: string;
@@ -308,6 +309,7 @@ Authentication.post(
 
       if (!(email in passwordResetRequests)) {
         passwordResetRequests[email] = code;
+        SendEmail(email, code.toString());
       }
     }
     res.status(200).json({
