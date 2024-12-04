@@ -203,3 +203,26 @@ export const getUserDungeons = async (apiKey: string) => {
     return null;
   }
 };
+
+export const getAllItemIds = async () => {
+  try {
+    const ids = await api.items.get();
+    ids.forEach((id) => {
+      // await prisma.Items.findFirst();
+    });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const getAllTradingPostIDs = async () => {
+  try {
+    // const itemids = await api.items.get();
+    const ids = await api.commerce.getListings([
+      4, 6, 15, 24, 33, 46, 56, 57, 58, 59, 60, 61, 62, 63, 64, 6,
+    ]);
+    return ids;
+  } catch (error) {
+    console.error(error);
+  }
+};

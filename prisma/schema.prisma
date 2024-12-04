@@ -54,3 +54,7 @@ model DailyCrafting {
   id   Int    @id @default(autoincrement())
   name String @unique
 }
+
+model Items {
+  id Int @id @unique
+}
