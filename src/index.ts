@@ -15,7 +15,7 @@ app.use(express.json());
 app.use(Authentication);
 app.use(APIRouter);
 
-cron.schedule("* 3 * * * *", async () => {
+cron.schedule("3 * * * *", async () => {
   console.log("Running scheduled API updates!");
   await getPricingDataForAllTradableItems();
 });
