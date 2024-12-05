@@ -15,11 +15,11 @@ app.use(express.json());
 app.use(Authentication);
 app.use(APIRouter);
 
-app.listen(port, () => {
-  console.log(`Started Tyria Tracker backend on port ${port}`);
-});
-
-cron.schedule("3 * * * *", async () => {
+cron.schedule("* 3 * * * *", async () => {
   console.log("Running scheduled API updates!");
   await getPricingDataForAllTradableItems();
+});
+
+app.listen(port, () => {
+  console.log(`Started Tyria Tracker backend on port ${port}`);
 });

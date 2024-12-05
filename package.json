@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "bcrypt": "^5.1.1",
