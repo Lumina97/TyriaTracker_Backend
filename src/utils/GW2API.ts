@@ -1,5 +1,6 @@
-import { PrismaClient, RaidWing } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { GW2Api, ApiLanguage } from "guildwars2-ts";
+import fs from "fs";
 
 const prisma = new PrismaClient();
 const api: GW2Api = new GW2Api({
@@ -8,6 +9,7 @@ const api: GW2Api = new GW2Api({
   language: ApiLanguage.English,
   rateLimitRetry: true,
 });
+let allTradableItemIds: number[] = [];
 
 export const updateDungeonsFromGW2API = async () => {
   await api.dungeons.get("all").then((dungeons) => {
@@ -122,6 +124,112 @@ export const updateWorldBossesFromGW2API = async () => {
   });
 };
 
+export const updateItemIDSFromGW2Api = async () => {
+  try {
+    const gw2Ids = await api.items.get();
+    const localIds = (
+      await prisma.items.findMany({ select: { id: true } })
+    ).map((item) => item.id);
+    const newIds = gw2Ids
+      .filter((id) => !localIds.includes(id))
+      .map((id) => ({ id }));
+    if (newIds.length === 0) {
+      console.log("No new id's to add to database!");
+      return;
+    }
+    console.log(`new ids: ${newIds.map((id) => console.log(id))}`);
+    await prisma.items.createMany({
+      data: newIds,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const updateTradableItemsFromFile = async () => {
+  try {
+    const data = fs.readFileSync("response.json", "utf8");
+    const ids: number[] = JSON.parse(data);
+    const localIds = (
+      await prisma.tradeableItems.findMany({
+        select: { id: true },
+      })
+    ).map((item) => item.id);
+
+    const newIDS = ids.filter((id) => !localIds.includes(id));
+    if (newIDS.length === 0) {
+      console.log("No new items found!");
+      return;
+    }
+
+    const batchSize = newIDS.length % 4;
+    const batches = [];
+    for (let i = 0; i < ids.length; i += batchSize) {
+      batches.push(ids.slice(i, i + batchSize));
+    }
+
+    for (let i = 0; i < batches.length; i++) {
+      const data = await api.items.get(batches[i]);
+      const filtered = data.map(
+        ({ id, name, level, rarity, vendor_value, icon }) => ({
+          id,
+          name,
+          level,
+          rarity,
+          vendorValue: vendor_value,
+          icon,
+        })
+      );
+      //@ts-ignore
+      await prisma.tradeableItems.createMany({ data: filtered });
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const getTradableItemIdsFromDatabase = async () => {
+  try {
+    if (allTradableItemIds.length > 0) return;
+    allTradableItemIds = (
+      await prisma.tradeableItems.findMany({
+        select: { id: true },
+      })
+    ).map((ids) => ids.id);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const getPricingDataForAllTradableItems = async () => {
+  try {
+    await getTradableItemIdsFromDatabase();
+    const batchSize = 200;
+    const batches = [];
+    for (let i = 0; i < allTradableItemIds.length; i += batchSize) {
+      batches.push(allTradableItemIds.slice(i, i + batchSize));
+    }
+
+    for (let i = 0; i < batches.length; i++) {
+      const prices = (await api.commerce.getPrices(batches[i])).map(
+        ({
+          id,
+          buys: { unit_price: buyPrice },
+          sells: { unit_price: sellPrice },
+        }) => ({
+          itemID: id,
+          buyPrice,
+          sellPrice,
+        })
+      );
+
+      await prisma.priceHistory.createMany({ data: prices });
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 export const getUserDailyCrafts = async (apiKey: string) => {
   const userAPI = new GW2Api({
     token: apiKey,
@@ -201,28 +309,5 @@ export const getUserDungeons = async (apiKey: string) => {
   } catch (error) {
     console.log(error);
     return null;
-  }
-};
-
-export const getAllItemIds = async () => {
-  try {
-    const ids = await api.items.get();
-    ids.forEach((id) => {
-      // await prisma.Items.findFirst();
-    });
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-export const getAllTradingPostIDs = async () => {
-  try {
-    // const itemids = await api.items.get();
-    const ids = await api.commerce.getListings([
-      4, 6, 15, 24, 33, 46, 56, 57, 58, 59, 60, 61, 62, 63, 64, 6,
-    ]);
-    return ids;
-  } catch (error) {
-    console.error(error);
   }
 };

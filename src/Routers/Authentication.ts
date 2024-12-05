@@ -50,7 +50,7 @@ const checkIfUserIsAuthorized = () => {
         .json({ status: false, message: "User is not authorized!" });
       return;
     }
-    next();
+    next(); 
   };
 };
 

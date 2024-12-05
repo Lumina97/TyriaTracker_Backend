@@ -58,3 +58,26 @@ model DailyCrafting {
 model Items {
   id Int @id @unique
 }
+
+model TradeableItems {
+  id           Int            @id @default(autoincrement())
+  PriceHistory PriceHistory[]
+  name         String
+  level        Int
+  rarity       String
+  vendorValue  Int
+  icon         String
+}
+
+model PriceHistory {
+  id        Int            @id @default(autoincrement())
+  item      TradeableItems @relation(fields: [itemID], references: [id])
+  itemID    Int
+  buyPrice  Int
+  sellPrice Int
+  supply    Int?
+  demand    Int?
+  timestamp DateTime       @default(now())
+
+  @@index([itemID, timestamp])
+}
