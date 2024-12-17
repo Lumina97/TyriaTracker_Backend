@@ -1,6 +1,13 @@
 import { PrismaClient } from "@prisma/client";
-import { GW2Api, ApiLanguage } from "guildwars2-ts";
+import { GW2Api, ApiLanguage, ApiParams } from "guildwars2-ts";
 import fs from "fs";
+import {
+  getAllItemIDsFromDatabase,
+  getTradableItemIdsFromDatabase,
+} from "./databaseUtils";
+
+const listingFeePercentage = 0.05;
+const exchangeFreePercentage = 0.1;
 
 const prisma = new PrismaClient();
 const api: GW2Api = new GW2Api({
@@ -8,8 +15,8 @@ const api: GW2Api = new GW2Api({
     "3EA9CEC1-5DD9-004A-9801-FD43E868DFF393853EE8-CB9E-4D84-9C5F-1B6422E090C1",
   language: ApiLanguage.English,
   rateLimitRetry: true,
+  logOutput: false,
 });
-let allTradableItemIds: number[] = [];
 
 export const updateDungeonsFromGW2API = async () => {
   await api.dungeons.get("all").then((dungeons) => {
@@ -188,42 +195,73 @@ export const updateTradableItemsFromFile = async () => {
   }
 };
 
-const getTradableItemIdsFromDatabase = async () => {
-  try {
-    if (allTradableItemIds.length > 0) return;
-    allTradableItemIds = (
-      await prisma.tradeableItems.findMany({
-        select: { id: true },
-      })
-    ).map((ids) => ids.id);
-  } catch (error) {
-    console.error(error);
-  }
+const calculateProfit = (buyPrice: number, sellPrice: number) => {
+  const sell =
+    sellPrice -
+    sellPrice * listingFeePercentage -
+    sellPrice * exchangeFreePercentage;
+  const buy = buyPrice;
+  const profit = sell - buy;
+  return profit;
 };
 
 export const getPricingDataForAllTradableItems = async () => {
   try {
-    await getTradableItemIdsFromDatabase();
+    const allTradableItemIds = await getTradableItemIdsFromDatabase();
     const batchSize = 200;
     const batches = [];
     for (let i = 0; i < allTradableItemIds.length; i += batchSize) {
       batches.push(allTradableItemIds.slice(i, i + batchSize));
     }
 
+    await prisma.latestPriceHistory.deleteMany();
     for (let i = 0; i < batches.length; i++) {
       const prices = (await api.commerce.getPrices(batches[i])).map(
         ({
           id,
+          buys: { quantity: demand },
+          sells: { quantity: supply },
           buys: { unit_price: buyPrice },
           sells: { unit_price: sellPrice },
         }) => ({
           itemID: id,
           buyPrice,
           sellPrice,
+          supply,
+          demand,
+          profit: calculateProfit(buyPrice, sellPrice),
+          ROI: (calculateProfit(buyPrice, sellPrice) / buyPrice) * 100,
         })
       );
 
+      await prisma.latestPriceHistory.createMany({ data: prices });
       await prisma.priceHistory.createMany({ data: prices });
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const updateAllItemsFromIDs = async () => {
+  try {
+    const itemIds = await getAllItemIDsFromDatabase();
+    const batchSize = 200;
+    const batches = [];
+    for (let i = 0; i < itemIds.length; i += batchSize) {
+      batches.push(itemIds.slice(i, i + batchSize));
+    }
+    await prisma.items.deleteMany();
+    for (let i = 0; i < batches.length; i++) {
+      const prices = (await api.items.get(batches[i])).map(
+        ({ id, name, icon, rarity, vendor_value }) => ({
+          id,
+          rarity,
+          vendorValue: vendor_value,
+          name,
+          icon,
+        })
+      );
+      await prisma.items.createMany({ data: prices });
     }
   } catch (error) {
     console.error(error);
