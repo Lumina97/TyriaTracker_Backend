@@ -2,14 +2,27 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 let allTradableItemIds: number[] = [];
+async function initialize() {
+  allTradableItemIds = (
+    await prisma.tradeableItems.findMany({
+      select: {
+        id: true,
+      },
+      orderBy: {
+        LatestPrice: {
+          demand: "desc",
+        },
+      },
+    })
+  ).map((ids) => ids.id);
+}
+initialize();
 
 export const getItemPricingDataFromDatabase = async (itemName: string) => {
   if (itemName.length === 0) {
     console.log("given name was empty! returning");
     return null;
   }
-
-  //const item = await prisma.tradeableItems.find
 };
 
 export const getTradableItemsFromIDs = async (ids: number[]) => {
@@ -19,6 +32,11 @@ export const getTradableItemsFromIDs = async (ids: number[]) => {
       where: { id: { in: ids } },
       include: {
         LatestPrice: true,
+      },
+      orderBy: {
+        LatestPrice: {
+          demand: "desc",
+        },
       },
     });
     const endTime = performance.now();
@@ -32,13 +50,23 @@ export const getTradableItemsFromIDs = async (ids: number[]) => {
   }
 };
 
-export const getAllTradableItems = async () => {
+export const getTradableItemsFromRange = async (
+  start: number,
+  amount: number
+) => {
   const startTime = performance.now();
   try {
     const items = await prisma.tradeableItems.findMany({
       include: {
         LatestPrice: true,
       },
+      orderBy: {
+        LatestPrice: {
+          demand: "desc",
+        },
+      },
+      skip: start,
+      take: amount,
     });
 
     const endTime = performance.now();
@@ -54,21 +82,18 @@ export const getAllTradableItems = async () => {
 
 export const getTradableItemIdsFromDatabase = async () => {
   try {
-    if (allTradableItemIds.length > 0) return allTradableItemIds;
-    allTradableItemIds = (
+    return (
       await prisma.tradeableItems.findMany({
         select: {
           id: true,
-          LatestPrice: true,
         },
         orderBy: {
           LatestPrice: {
-            profit: "desc",
+            demand: "desc",
           },
         },
       })
     ).map((ids) => ids.id);
-    return allTradableItemIds;
   } catch (error) {
     console.error(error);
   }
@@ -99,4 +124,15 @@ export const getAllItemIDsFromDatabase = async () => {
     console.error(error);
   }
   return [];
+};
+
+export const getTradableItemsLength = async () => {
+  if (!allTradableItemIds)
+    allTradableItemIds = (
+      await prisma.tradeableItems.findMany({
+        select: { id: true },
+      })
+    ).map((ids) => ids.id);
+
+  return allTradableItemIds.length;
 };

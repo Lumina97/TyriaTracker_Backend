@@ -1,6 +1,8 @@
 # Dependency directories
 node_modules/
 
+prisma/dev.db
+
 # Logs
 logs
 *.log

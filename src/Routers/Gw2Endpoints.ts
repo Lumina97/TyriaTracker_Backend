@@ -11,11 +11,10 @@ import {
 } from "../utils/GW2API";
 import { isUserAuthorized } from "../utils/authUtils";
 import {
-  getAllTradableItems,
   getTradableItemIdsFromDatabase,
-  getTradableItemsFromIDs,
+  getTradableItemsFromRange,
+  getTradableItemsLength,
 } from "../utils/databaseUtils";
-import { error } from "console";
 
 const APIRouter = Router();
 const prisma = new PrismaClient();
@@ -172,18 +171,17 @@ APIRouter.post(
   "/api/tradingPost/getTradableItems",
   validateRequest({
     body: z.object({
-      ids: z.array(z.number()).optional(),
+      start: z.number({
+        required_error: "start index is needed to get items!",
+      }),
+      amount: z.number({ required_error: "amount is needed to get items!" }),
     }),
   }),
   async (req: Request, res: Response) => {
     console.log("Getting all tradable items");
-    const { ids } = req.body;
-    let items = null;
-
-    if (ids) {
-      console.log(`Getting items with id's`);
-      items = await getTradableItemsFromIDs(ids);
-    } else items = await getAllTradableItems();
+    const { start, amount } = req.body;
+    let items = await getTradableItemsFromRange(start, amount);
+    let amountOfItems = await getTradableItemsLength();
 
     if (items === null) {
       console.log("Getting all items has failed");
@@ -194,7 +192,9 @@ APIRouter.post(
     }
 
     console.log("returning result");
-    res.status(200).json({ status: true, data: items });
+    res
+      .status(200)
+      .json({ status: true, data: items, itemCount: amountOfItems });
   }
 );
 

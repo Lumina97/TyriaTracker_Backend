@@ -155,7 +155,7 @@ export const updateItemIDSFromGW2Api = async () => {
 
 export const updateTradableItemsFromFile = async () => {
   try {
-    const data = fs.readFileSync("response.json", "utf8");
+    const data = fs.readFileSync("ids.txt", "utf8");
     const ids: number[] = JSON.parse(data);
     const localIds = (
       await prisma.tradeableItems.findMany({
@@ -214,7 +214,7 @@ export const getPricingDataForAllTradableItems = async () => {
       batches.push(allTradableItemIds.slice(i, i + batchSize));
     }
 
-    await prisma.latestPriceHistory.deleteMany();
+    let newLatestPrices = [];
     for (let i = 0; i < batches.length; i++) {
       const prices = (await api.commerce.getPrices(batches[i])).map(
         ({
@@ -234,9 +234,13 @@ export const getPricingDataForAllTradableItems = async () => {
         })
       );
 
-      await prisma.latestPriceHistory.createMany({ data: prices });
+      newLatestPrices.push(prices);
+
       await prisma.priceHistory.createMany({ data: prices });
     }
+    await prisma.latestPriceHistory.deleteMany();
+    newLatestPrices = newLatestPrices.flat(1);
+    await prisma.latestPriceHistory.createMany({ data: newLatestPrices });
   } catch (error) {
     console.error(error);
   }

@@ -3,7 +3,10 @@ import cors from "cors";
 import { Authentication } from "./Routers/AuthenticationEndpoints";
 import { APIRouter } from "./Routers/Gw2Endpoints";
 import cron from "node-cron";
-import { getPricingDataForAllTradableItems } from "./utils/GW2API";
+import {
+  getPricingDataForAllTradableItems,
+  updateTradableItemsFromFile,
+} from "./utils/GW2API";
 
 const app = express();
 const port = 3030;
