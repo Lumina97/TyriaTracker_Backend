@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response, Router } from "express";
-import { z, ZodArray } from "zod";
+import { z } from "zod";
 import { validateRequest } from "zod-express-middleware";
 import { PrismaClient } from "@prisma/client";
 import {
@@ -11,6 +11,7 @@ import {
 } from "../utils/GW2API";
 import { isUserAuthorized } from "../utils/authUtils";
 import {
+  getTradableItemById,
   getTradableItemIdsFromDatabase,
   getTradableItemsFromRange,
   getTradableItemsLength,
@@ -175,12 +176,21 @@ APIRouter.post(
         required_error: "start index is needed to get items!",
       }),
       amount: z.number({ required_error: "amount is needed to get items!" }),
+      orderCriteria: z
+        .enum(["sellPrice", "buyPrice", "profit", "ROI", "supply", "demand"])
+        .optional(),
+      orderDirection: z.enum(["asc", "desc"]).optional(),
     }),
   }),
   async (req: Request, res: Response) => {
     console.log("Getting all tradable items");
-    const { start, amount } = req.body;
-    let items = await getTradableItemsFromRange(start, amount);
+    const { start, amount, orderDirection, orderCriteria } = req.body;
+    let items = await getTradableItemsFromRange(
+      start,
+      amount,
+      orderCriteria || "demand",
+      orderDirection || "desc"
+    );
     let amountOfItems = await getTradableItemsLength();
 
     if (items === null) {
@@ -195,6 +205,31 @@ APIRouter.post(
     res
       .status(200)
       .json({ status: true, data: items, itemCount: amountOfItems });
+  }
+);
+
+APIRouter.post(
+  "/api/tradingPost/item",
+  validateRequest({
+    body: z.object({
+      id: z.string({ required_error: "Item ID is required!" }),
+    }),
+  }),
+  async (req: Request, res: Response) => {
+    console.log("Getting tradable item from ID!");
+    const { id } = req.body;
+    let item = await getTradableItemById(parseInt(id));
+
+    if (item === null) {
+      console.log("Getting tradable item by ID has failed");
+      res
+        .status(503)
+        .json({ status: false, message: "Failed to get tradable item!" });
+      return;
+    }
+
+    console.log("returning result");
+    res.status(200).json({ status: true, data: item });
   }
 );
 

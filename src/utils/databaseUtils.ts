@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 let allTradableItemIds: number[] = [];
@@ -52,17 +52,21 @@ export const getTradableItemsFromIDs = async (ids: number[]) => {
 
 export const getTradableItemsFromRange = async (
   start: number,
-  amount: number
+  amount: number,
+  orderField: string,
+  orderDirection: Prisma.SortOrder
 ) => {
   const startTime = performance.now();
   try {
+    if (orderField === "") orderField = "demand";
+
     const items = await prisma.tradeableItems.findMany({
       include: {
         LatestPrice: true,
       },
       orderBy: {
         LatestPrice: {
-          demand: "desc",
+          [orderField]: orderDirection,
         },
       },
       skip: start,
@@ -71,7 +75,7 @@ export const getTradableItemsFromRange = async (
 
     const endTime = performance.now();
     console.log(
-      `GetAllTradableItems took: ${endTime - startTime} milliseconds`
+      `getTradableItemsFromRange took: ${endTime - startTime} milliseconds`
     );
     return items;
   } catch (error) {
@@ -100,22 +104,6 @@ export const getTradableItemIdsFromDatabase = async () => {
   return [];
 };
 
-export const getRangeOfTradableItemIDs = async (start: number, end: number) => {
-  try {
-    if (allTradableItemIds.length > 0)
-      return allTradableItemIds.slice(start, end);
-    allTradableItemIds = (
-      await prisma.tradeableItems.findMany({
-        select: { id: true },
-      })
-    ).map((ids) => ids.id);
-    return allTradableItemIds.slice(start, end);
-  } catch (error) {
-    console.error(error);
-  }
-  return [];
-};
-
 export const getAllItemIDsFromDatabase = async () => {
   try {
     if (allTradableItemIds.length > 0) return allTradableItemIds;
@@ -135,4 +123,15 @@ export const getTradableItemsLength = async () => {
     ).map((ids) => ids.id);
 
   return allTradableItemIds.length;
+};
+
+export const getTradableItemById = async (id: number) => {
+  return await prisma.tradeableItems.findUnique({
+    where: {
+      id: id,
+    },
+    include: {
+      PriceHistory: true,
+    },
+  });
 };
