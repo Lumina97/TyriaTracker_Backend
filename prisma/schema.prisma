@@ -56,12 +56,18 @@ model DailyCrafting {
 }
 
 model Items {
-  id Int @id @unique
+  id          Int     @id @unique
+  name        String?
+  level       Int?
+  rarity      String?
+  vendorValue Int?
+  icon        String?
 }
 
 model TradeableItems {
-  id           Int            @id @default(autoincrement())
+  id           Int                 @id @default(autoincrement())
   PriceHistory PriceHistory[]
+  LatestPrice  LatestPriceHistory?
   name         String
   level        Int
   rarity       String
@@ -75,9 +81,23 @@ model PriceHistory {
   itemID    Int
   buyPrice  Int
   sellPrice Int
+  profit    Int?
+  ROI       Int?
   supply    Int?
   demand    Int?
   timestamp DateTime       @default(now())
 
   @@index([itemID, timestamp])
+}
+
+model LatestPriceHistory {
+  id        Int            @id @default(autoincrement())
+  item      TradeableItems @relation(fields: [itemID], references: [id])
+  itemID    Int            @unique
+  buyPrice  Int
+  sellPrice Int
+  profit    Int?
+  ROI       Int?
+  supply    Int?
+  demand    Int?
 }

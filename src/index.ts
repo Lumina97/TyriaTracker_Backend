@@ -1,9 +1,7 @@
-//@ts-ignore
 import express from "express";
-import { Authentication } from "./Routers/Authentication";
-//@ts-ignore
 import cors from "cors";
-import { APIRouter } from "./Routers/API";
+import { Authentication } from "./Routers/AuthenticationEndpoints";
+import { APIRouter } from "./Routers/Gw2Endpoints";
 import cron from "node-cron";
 import { getPricingDataForAllTradableItems } from "./utils/GW2API";
 
@@ -15,9 +13,12 @@ app.use(express.json());
 app.use(Authentication);
 app.use(APIRouter);
 
-cron.schedule("*/3 * * * *", async () => {
-  console.log("Running scheduled API updates!");
+cron.schedule("*/5 * * * *", async () => {
+  const start = performance.now();
+  console.log(`Running scheduled API updates! at time: ${Date.now.toString()}`);
   await getPricingDataForAllTradableItems();
+  const time = performance.now() - start;
+  console.log(`Finished scheduled API updates! It took: ${time} milliseconds`);
 });
 
 app.listen(port, () => {
