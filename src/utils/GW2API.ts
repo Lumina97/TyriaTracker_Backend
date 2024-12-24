@@ -15,7 +15,7 @@ const api: GW2Api = new GW2Api({
     "3EA9CEC1-5DD9-004A-9801-FD43E868DFF393853EE8-CB9E-4D84-9C5F-1B6422E090C1",
   language: ApiLanguage.English,
   rateLimitRetry: true,
-  logOutput: false,
+  // logOutput: false,
 });
 
 export const updateDungeonsFromGW2API = async () => {
