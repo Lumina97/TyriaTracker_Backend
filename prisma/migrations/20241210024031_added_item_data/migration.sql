@@ -1,6 +1,0 @@
--- AlterTable
-ALTER TABLE "Items" ADD COLUMN "icon" TEXT;
-ALTER TABLE "Items" ADD COLUMN "level" INTEGER;
-ALTER TABLE "Items" ADD COLUMN "name" TEXT;
-ALTER TABLE "Items" ADD COLUMN "rarity" TEXT;
-ALTER TABLE "Items" ADD COLUMN "vendorValue" INTEGER;
