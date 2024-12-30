@@ -25,31 +25,6 @@ export const getItemPricingDataFromDatabase = async (itemName: string) => {
   }
 };
 
-export const getTradableItemsFromIDs = async (ids: number[]) => {
-  const startTime = performance.now();
-  try {
-    const items = await prisma.tradeableItems.findMany({
-      where: { id: { in: ids } },
-      include: {
-        LatestPrice: true,
-      },
-      orderBy: {
-        LatestPrice: {
-          demand: "desc",
-        },
-      },
-    });
-    const endTime = performance.now();
-    console.log(
-      `GetAllTradableItems took: ${endTime - startTime} milliseconds`
-    );
-    return items;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
-};
-
 export const getTradableItemsFromRange = async (
   start: number,
   amount: number,
@@ -132,6 +107,7 @@ export const getTradableItemById = async (id: number) => {
     },
     include: {
       PriceHistory: true,
+      LatestPrice: true,
     },
   });
 };
