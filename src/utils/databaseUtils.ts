@@ -111,3 +111,16 @@ export const getTradableItemById = async (id: number) => {
     },
   });
 };
+
+export const cleanOldRecords = async () => {
+  console.log("Starting cleaning");
+  await prisma.$queryRawUnsafe(`
+   DELETE FROM public."PriceHistory"
+	WHERE "timestamp" < NOW() - interval '1 Day'	
+	AND NOT (
+		  DATE_TRUNC('minute', "timestamp")::time = '00:00:00' OR
+      DATE_TRUNC('minute', "timestamp")::time = '12:00:00'
+	)
+  `);
+  console.log("Ended cleaning");
+};

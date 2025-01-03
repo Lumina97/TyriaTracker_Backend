@@ -4,6 +4,7 @@ import { Authentication } from "./Routers/AuthenticationEndpoints";
 import { APIRouter } from "./Routers/Gw2Endpoints";
 import cron from "node-cron";
 import { getPricingDataForAllTradableItems } from "./utils/GW2API";
+import { cleanOldRecords } from "./utils/databaseUtils";
 
 const app = express();
 const port = 3030;
@@ -21,6 +22,16 @@ cron.schedule("*/5 * * * *", async () => {
   await getPricingDataForAllTradableItems();
   const time = performance.now() - start;
   console.log(`Finished scheduled API updates! It took: ${time} milliseconds`);
+});
+
+cron.schedule("0 0 0 * * *", async () => {
+  const start = performance.now();
+  console.log(`Running scheduled Database clean!`);
+  await cleanOldRecords();
+  const time = performance.now() - start;
+  console.log(
+    `Finished scheduled Database clean! It took: ${time} milliseconds`
+  );
 });
 
 app.listen(port, () => {
