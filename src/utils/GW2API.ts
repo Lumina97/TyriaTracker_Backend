@@ -1,21 +1,21 @@
-import { PrismaClient } from "@prisma/client";
-import { GW2Api, ApiLanguage, ApiParams } from "guildwars2-ts";
+import { GW2Api, ApiLanguage } from "guildwars2-ts";
 import fs from "fs";
 import {
   getAllItemIDsFromDatabase,
   getTradableItemIdsFromDatabase,
+  prisma,
 } from "./databaseUtils";
 
-const listingFeePercentage = 0.05;
-const exchangeFreePercentage = 0.1;
+const listingFeePercentage = parseInt(
+  process.env.LISTING_FEE_PERCENTAGE || "0.05"
+);
+const exchangeFreePercentage = parseInt(
+  process.env.EXCHANGE_FREE_PERCENTAGE || "0.1"
+);
 
-const prisma = new PrismaClient();
 const api: GW2Api = new GW2Api({
-  token:
-    "3EA9CEC1-5DD9-004A-9801-FD43E868DFF393853EE8-CB9E-4D84-9C5F-1B6422E090C1",
   language: ApiLanguage.English,
   rateLimitRetry: true,
-  // logOutput: false,
 });
 
 export const updateDungeonsFromGW2API = async () => {

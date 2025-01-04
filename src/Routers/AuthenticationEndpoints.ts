@@ -50,7 +50,7 @@ const checkIfUserIsAuthorized = () => {
         .json({ status: false, message: "User is not authorized!" });
       return;
     }
-    next(); 
+    next();
   };
 };
 
@@ -337,10 +337,6 @@ Authentication.post(
   async (req: Request, res: Response) => {
     const { email, resetCode, newPassword } = req.body;
     const code = parseInt(resetCode);
-    console.log("code:");
-    console.log(code);
-    console.log("isInDict:");
-    console.log(email in passwordResetRequests);
 
     if (
       // email never made a request or given reset code was incorrect

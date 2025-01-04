@@ -23,7 +23,7 @@ export const SendEmail = (toEmail: string, code: string) => {
   });
 
   const mailOptions = {
-    from: "nivalaerik04@gmail.com",
+    from: email,
     to: toEmail,
     subject: "Password reset.",
     text: code,

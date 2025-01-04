@@ -15,10 +15,10 @@ import {
   getTradableItemIdsFromDatabase,
   getTradableItemsFromRange,
   getTradableItemsLength,
+  prisma,
 } from "../utils/databaseUtils";
 
 const APIRouter = Router();
-const prisma = new PrismaClient();
 
 const getUserAPIKeyFromEmail = async (email: string) => {
   const user = await prisma.user.findFirst({

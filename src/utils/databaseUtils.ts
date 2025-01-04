@@ -1,6 +1,6 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+export const prisma = new PrismaClient();
 let allTradableItemIds: number[] = [];
 async function initialize() {
   allTradableItemIds = (
