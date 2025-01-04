@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { z } from "zod";
 import { validateRequest } from "zod-express-middleware";
-import { PrismaClient } from "@prisma/client";
 import {
   getUserDailyCrafts,
   getUserDungeons,
@@ -17,6 +16,7 @@ import {
   getTradableItemsLength,
   prisma,
 } from "../utils/databaseUtils";
+import HttpStatusCode from "../utils/statusCodes";
 
 const APIRouter = Router();
 
@@ -35,14 +35,14 @@ const ValidateUserAndAPIKey = () => {
     const isAuth = await isUserAuthorized(email, jwt);
     if (isAuth === false) {
       res
-        .status(400)
+        .status(HttpStatusCode.BAD_REQUEST)
         .json({ status: false, message: "User is not autorized!" });
       return;
     }
     const key = await getUserAPIKeyFromEmail(email);
     if (key === null) {
       res
-        .status(400)
+        .status(HttpStatusCode.OK)
         .json({ status: false, message: "User does not have an API key set!" });
       return;
     }
@@ -66,7 +66,7 @@ APIRouter.post(
     const userData = await getUserWorldBosses(req.body.apiKey);
     const worldData = await prisma.worldbosses.findMany();
 
-    res.status(200).json({ status: true, userData, worldData });
+    res.status(HttpStatusCode.OK).json({ status: true, userData, worldData });
   }
 );
 
@@ -89,7 +89,7 @@ APIRouter.post(
       include: { events: true },
     });
 
-    res.status(200).json({ status: true, userData, worldData });
+    res.status(HttpStatusCode.OK).json({ status: true, userData, worldData });
   }
 );
 
@@ -109,7 +109,7 @@ APIRouter.post(
     });
     const userData = await getUserDungeons(req.body.apiKey);
 
-    res.status(200).json({ status: true, userData, worldData });
+    res.status(HttpStatusCode.OK).json({ status: true, userData, worldData });
   }
 );
 
@@ -127,7 +127,7 @@ APIRouter.post(
     const worldData = await prisma.dailyCrafting.findMany();
     const userData = await getUserDailyCrafts(req.body.apiKey);
 
-    res.status(200).json({ status: true, userData, worldData });
+    res.status(HttpStatusCode.OK).json({ status: true, userData, worldData });
   }
 );
 
@@ -144,7 +144,7 @@ APIRouter.post(
   async (req: Request, res: Response) => {
     const userData = await getUserWizardVault(req.body.apiKey);
 
-    res.status(200).json({ status: true, userData });
+    res.status(HttpStatusCode.OK).json({ status: true, userData });
   }
 );
 
@@ -156,12 +156,12 @@ APIRouter.post(
       if (ids === null || ids.length < 0)
         throw new Error("Getting Tradable items ids has failed!");
 
-      res.status(200).json({ status: true, data: ids });
+      res.status(HttpStatusCode.OK).json({ status: true, data: ids });
       return;
     } catch (error) {
       console.error(error);
       res
-        .status(503)
+        .status(HttpStatusCode.SERVICE_UNAVAILABLE)
         .json({ status: false, message: "Failed to get all tradable items" });
       return;
     }
@@ -196,14 +196,14 @@ APIRouter.post(
     if (items === null) {
       console.log("Getting all items has failed");
       res
-        .status(503)
+        .status(HttpStatusCode.SERVICE_UNAVAILABLE)
         .json({ status: false, message: "Failed to get all tradable items" });
       return;
     }
 
     console.log("returning result");
     res
-      .status(200)
+      .status(HttpStatusCode.OK)
       .json({ status: true, data: items, itemCount: amountOfItems });
   }
 );
@@ -223,13 +223,13 @@ APIRouter.post(
     if (item === null) {
       console.log("Getting tradable item by ID has failed");
       res
-        .status(503)
+        .status(HttpStatusCode.SERVICE_UNAVAILABLE)
         .json({ status: false, message: "Failed to get tradable item!" });
       return;
     }
 
     console.log("returning result");
-    res.status(200).json({ status: true, data: item });
+    res.status(HttpStatusCode.OK).json({ status: true, data: item });
   }
 );
 

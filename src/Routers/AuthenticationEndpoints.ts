@@ -14,6 +14,7 @@ import { PrismaClient } from "@prisma/client";
 import { validateRequest } from "zod-express-middleware";
 import { z } from "zod";
 import { SendEmail } from "../utils/emailUtils";
+import HttpStatusCode from "../utils/statusCodes";
 
 type TUser = {
   email?: string;
@@ -46,7 +47,7 @@ const checkIfUserIsAuthorized = () => {
     if (isAuth === false) {
       console.log(`is not authorized`);
       res
-        .status(403)
+        .status(HttpStatusCode.UNAUTHORIZED)
         .json({ status: false, message: "User is not authorized!" });
       return;
     }
@@ -65,7 +66,7 @@ Authentication.post(
     if (user) {
       console.error("could not create user. Already existed!");
       res
-        .status(409)
+        .status(HttpStatusCode.CONFLICT)
         .json({ status: false, message: "Email is already in use!" });
       return;
     }
@@ -92,7 +93,7 @@ Authentication.post(
     if (jwt === false) hadCreationError = true;
 
     if (hadCreationError) {
-      res.status(400).json({
+      res.status(HttpStatusCode.BAD_REQUEST).json({
         status: false,
         message: "There was an error creating user!",
       });
@@ -104,7 +105,9 @@ Authentication.post(
       jwt,
       apiKeys: [],
     };
-    res.status(200).json({ status: true, message: "User Created!", newUser });
+    res
+      .status(HttpStatusCode.OK)
+      .json({ status: true, message: "User Created!", newUser });
   }
 );
 
@@ -165,11 +168,13 @@ Authentication.patch(
       console.log(`updated ${updated.email}`);
       console.log(`new user: ${JSON.stringify(updated)}`);
       const noPasswordUser = (({ passwordHash, ...user }) => user)(updated);
-      res.json({ status: true, updatedUser: noPasswordUser });
+      res
+        .status(HttpStatusCode.OK)
+        .json({ status: true, updatedUser: noPasswordUser });
     } catch (error) {
       console.log(error);
       res
-        .status(400)
+        .status(HttpStatusCode.BAD_REQUEST)
         .json({ status: false, message: "There was an issue updating User" });
     }
   }
@@ -189,11 +194,15 @@ Authentication.delete(
         },
       })
       .then(() => {
-        res.status(200).json({ message: `Successfully deleted user ${email}` });
+        res
+          .status(HttpStatusCode.OK)
+          .json({ message: `Successfully deleted user ${email}` });
       })
       .catch((error) => {
         console.error(`Error during delete request ${error}`);
-        res.status(400).json({ message: `Failed to delete user ${email}` });
+        res
+          .status(HttpStatusCode.BAD_REQUEST)
+          .json({ message: `Failed to delete user ${email}` });
       });
   }
 );
@@ -208,9 +217,11 @@ Authentication.get(
     if (user) {
       //remove password hash before sending it off.
       const noPasswordUser = (({ passwordHash, ...user }) => user)(user);
-      res.status(200).json(noPasswordUser);
+      res.status(HttpStatusCode.OK).json(noPasswordUser);
     } else {
-      res.status(400).json({ error: "User does not exist!" });
+      res
+        .status(HttpStatusCode.BAD_REQUEST)
+        .json({ error: "User does not exist!" });
     }
   }
 );
@@ -234,14 +245,18 @@ Authentication.post(
       const user = await getUser(email);
       if (!user) {
         console.log("Unable to log in - no user found");
-        res.status(401).json({ status: false, message: "Could not log in!" });
+        res
+          .status(HttpStatusCode.UNAUTHORIZED)
+          .json({ status: false, message: "Could not log in!" });
         return;
       }
 
       validatePassword(password, user.passwordHash).then((result) => {
         if (result === false) {
           console.log(`password compare failed`);
-          res.status(401).json({ status: false, message: "Could not log in!" });
+          res
+            .status(HttpStatusCode.UNAUTHORIZED)
+            .json({ status: false, message: "Could not log in!" });
           return;
         }
 
@@ -252,12 +267,14 @@ Authentication.post(
           APIKey: user.APIKey,
         };
         res
-          .status(200)
+          .status(HttpStatusCode.OK)
           .json({ status: true, message: "You have logged in!", newUser });
       });
     } catch (error) {
       console.log(error);
-      res.status(401).json({ status: false, message: "Could not log in!" });
+      res
+        .status(HttpStatusCode.UNAUTHORIZED)
+        .json({ status: false, message: "Could not log in!" });
     }
   }
 );
@@ -278,11 +295,13 @@ Authentication.post(
     const { jwt } = req.body;
     const verify = ValidateJWT(jwt);
     if (typeof verify === "string" || verify === false)
-      res.status(400).json({ status: false, message: "user is not logged in" });
+      res
+        .status(HttpStatusCode.BAD_REQUEST)
+        .json({ status: false, message: "user is not logged in" });
     else {
       const user = await getUser(verify.email);
       res
-        .status(200)
+        .status(HttpStatusCode.OK)
         .json({ status: true, message: "user is logged in", user });
     }
   }
@@ -312,7 +331,7 @@ Authentication.post(
         SendEmail(email, code.toString());
       }
     }
-    res.status(200).json({
+    res.status(HttpStatusCode.OK).json({
       status: true,
       message: "If user exists you will receive a email with a pass code.",
     });
@@ -345,7 +364,7 @@ Authentication.post(
       passwordResetRequests[email] != code
     ) {
       console.log(`email : ${email} or code ${resetCode} were not correct`);
-      res.status(400).json({
+      res.status(HttpStatusCode.BAD_REQUEST).json({
         status: false,
         message: "Failed to reset password!",
       });
@@ -371,11 +390,13 @@ Authentication.post(
         },
       });
       delete passwordResetRequests[email];
-      res.json({ status: true, message: "Successfully reset password!" });
+      res
+        .status(HttpStatusCode.OK)
+        .json({ status: true, message: "Successfully reset password!" });
     } catch (error) {
       console.log(error);
       res
-        .status(400)
+        .status(HttpStatusCode.BAD_REQUEST)
         .json({ status: false, message: "Failed to reset password!" });
     }
   }
