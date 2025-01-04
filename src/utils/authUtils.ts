@@ -95,17 +95,13 @@ export const ValidateJWT = (token: string) => {
   }
 
   try {
-    return jwt.verify(token, secret);
+    const decoded = jwt.verify(token, secret);
+    if (decoded && typeof decoded === "object" && "email" in decoded) {
+      return decoded.email as string;
+    }
+    return false;
   } catch (error) {
     console.log(error);
     return false;
   }
-};
-
-export const isUserAuthorized = (email: string, jwt: string) => {
-  const valid = ValidateJWT(jwt);
-  if (valid === false || (valid as { email: string }).email !== email) {
-    return false;
-  }
-  return true;
 };

@@ -8,7 +8,6 @@ import {
   getUserWizardVault,
   getUserWorldBosses,
 } from "../utils/GW2API";
-import { isUserAuthorized } from "../utils/authUtils";
 import {
   getTradableItemById,
   getTradableItemIdsFromDatabase,
@@ -17,6 +16,7 @@ import {
   prisma,
 } from "../utils/databaseUtils";
 import HttpStatusCode from "../utils/statusCodes";
+import { ValidateJWT } from "../utils/authUtils";
 
 const APIRouter = Router();
 
@@ -32,11 +32,11 @@ const getUserAPIKeyFromEmail = async (email: string) => {
 const ValidateUserAndAPIKey = () => {
   return async (req: Request, res: Response, next: NextFunction) => {
     const { email, jwt } = req.body;
-    const isAuth = await isUserAuthorized(email, jwt);
-    if (isAuth === false) {
+    const isAuth = await ValidateJWT(jwt);
+    if (isAuth === false || email != isAuth) {
       res
         .status(HttpStatusCode.BAD_REQUEST)
-        .json({ status: false, message: "User is not autorized!" });
+        .json({ status: false, message: "User is not authorized!" });
       return;
     }
     const key = await getUserAPIKeyFromEmail(email);
@@ -89,7 +89,9 @@ APIRouter.post(
       include: { events: true },
     });
 
-    res.status(HttpStatusCode.OK).json({ status: true, userData, worldData });
+    return res
+      .status(HttpStatusCode.OK)
+      .json({ status: true, userData, worldData });
   }
 );
 
@@ -109,7 +111,9 @@ APIRouter.post(
     });
     const userData = await getUserDungeons(req.body.apiKey);
 
-    res.status(HttpStatusCode.OK).json({ status: true, userData, worldData });
+    return res
+      .status(HttpStatusCode.OK)
+      .json({ status: true, userData, worldData });
   }
 );
 
@@ -127,7 +131,9 @@ APIRouter.post(
     const worldData = await prisma.dailyCrafting.findMany();
     const userData = await getUserDailyCrafts(req.body.apiKey);
 
-    res.status(HttpStatusCode.OK).json({ status: true, userData, worldData });
+    return res
+      .status(HttpStatusCode.OK)
+      .json({ status: true, userData, worldData });
   }
 );
 
@@ -144,7 +150,7 @@ APIRouter.post(
   async (req: Request, res: Response) => {
     const userData = await getUserWizardVault(req.body.apiKey);
 
-    res.status(HttpStatusCode.OK).json({ status: true, userData });
+    return res.status(HttpStatusCode.OK).json({ status: true, userData });
   }
 );
 
@@ -156,14 +162,12 @@ APIRouter.post(
       if (ids === null || ids.length < 0)
         throw new Error("Getting Tradable items ids has failed!");
 
-      res.status(HttpStatusCode.OK).json({ status: true, data: ids });
-      return;
+      return res.status(HttpStatusCode.OK).json({ status: true, data: ids });
     } catch (error) {
       console.error(error);
-      res
+      return res
         .status(HttpStatusCode.SERVICE_UNAVAILABLE)
         .json({ status: false, message: "Failed to get all tradable items" });
-      return;
     }
   }
 );
@@ -195,14 +199,13 @@ APIRouter.post(
 
     if (items === null) {
       console.log("Getting all items has failed");
-      res
+      return res
         .status(HttpStatusCode.SERVICE_UNAVAILABLE)
         .json({ status: false, message: "Failed to get all tradable items" });
-      return;
     }
 
     console.log("returning result");
-    res
+    return res
       .status(HttpStatusCode.OK)
       .json({ status: true, data: items, itemCount: amountOfItems });
   }
@@ -222,14 +225,13 @@ APIRouter.post(
 
     if (item === null) {
       console.log("Getting tradable item by ID has failed");
-      res
+      return res
         .status(HttpStatusCode.SERVICE_UNAVAILABLE)
         .json({ status: false, message: "Failed to get tradable item!" });
-      return;
     }
 
     console.log("returning result");
-    res.status(HttpStatusCode.OK).json({ status: true, data: item });
+    return res.status(HttpStatusCode.OK).json({ status: true, data: item });
   }
 );
 

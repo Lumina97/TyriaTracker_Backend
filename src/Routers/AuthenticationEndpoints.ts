@@ -7,7 +7,6 @@ import {
   encryptPassword,
   CreateJWTFromEmail,
   validatePassword,
-  isUserAuthorized,
   ValidateJWT,
 } from "../utils/authUtils";
 import { PrismaClient } from "@prisma/client";
@@ -43,13 +42,12 @@ const checkIfUserIsAuthorized = () => {
     const jwt = newUser ? newUser.jwt : req.body.jwt;
     const { email } = req.params;
 
-    const isAuth = await isUserAuthorized(email, jwt);
-    if (isAuth === false) {
+    const isAuth = await ValidateJWT(jwt);
+    if (isAuth === false || email != isAuth) {
       console.log(`is not authorized`);
-      res
+      return res
         .status(HttpStatusCode.UNAUTHORIZED)
         .json({ status: false, message: "User is not authorized!" });
-      return;
     }
     next();
   };
@@ -65,10 +63,9 @@ Authentication.post(
     const user = await getUser(email);
     if (user) {
       console.error("could not create user. Already existed!");
-      res
+      return res
         .status(HttpStatusCode.CONFLICT)
         .json({ status: false, message: "Email is already in use!" });
-      return;
     }
 
     let hadCreationError = false;
@@ -93,11 +90,10 @@ Authentication.post(
     if (jwt === false) hadCreationError = true;
 
     if (hadCreationError) {
-      res.status(HttpStatusCode.BAD_REQUEST).json({
+      return res.status(HttpStatusCode.BAD_REQUEST).json({
         status: false,
         message: "There was an error creating user!",
       });
-      return;
     }
     console.log(`Created user ${email}`);
     const newUser = {
@@ -105,7 +101,7 @@ Authentication.post(
       jwt,
       apiKeys: [],
     };
-    res
+    return res
       .status(HttpStatusCode.OK)
       .json({ status: true, message: "User Created!", newUser });
   }
@@ -168,12 +164,12 @@ Authentication.patch(
       console.log(`updated ${updated.email}`);
       console.log(`new user: ${JSON.stringify(updated)}`);
       const noPasswordUser = (({ passwordHash, ...user }) => user)(updated);
-      res
+      return res
         .status(HttpStatusCode.OK)
         .json({ status: true, updatedUser: noPasswordUser });
     } catch (error) {
       console.log(error);
-      res
+      return res
         .status(HttpStatusCode.BAD_REQUEST)
         .json({ status: false, message: "There was an issue updating User" });
     }
@@ -194,13 +190,13 @@ Authentication.delete(
         },
       })
       .then(() => {
-        res
+        return res
           .status(HttpStatusCode.OK)
           .json({ message: `Successfully deleted user ${email}` });
       })
       .catch((error) => {
         console.error(`Error during delete request ${error}`);
-        res
+        return res
           .status(HttpStatusCode.BAD_REQUEST)
           .json({ message: `Failed to delete user ${email}` });
       });
@@ -217,9 +213,9 @@ Authentication.get(
     if (user) {
       //remove password hash before sending it off.
       const noPasswordUser = (({ passwordHash, ...user }) => user)(user);
-      res.status(HttpStatusCode.OK).json(noPasswordUser);
+      return res.status(HttpStatusCode.OK).json(noPasswordUser);
     } else {
-      res
+      return res
         .status(HttpStatusCode.BAD_REQUEST)
         .json({ error: "User does not exist!" });
     }
@@ -245,7 +241,7 @@ Authentication.post(
       const user = await getUser(email);
       if (!user) {
         console.log("Unable to log in - no user found");
-        res
+        return res
           .status(HttpStatusCode.UNAUTHORIZED)
           .json({ status: false, message: "Could not log in!" });
         return;
@@ -254,7 +250,7 @@ Authentication.post(
       validatePassword(password, user.passwordHash).then((result) => {
         if (result === false) {
           console.log(`password compare failed`);
-          res
+          return res
             .status(HttpStatusCode.UNAUTHORIZED)
             .json({ status: false, message: "Could not log in!" });
           return;
@@ -266,13 +262,13 @@ Authentication.post(
           jwt: token,
           APIKey: user.APIKey,
         };
-        res
+        return res
           .status(HttpStatusCode.OK)
           .json({ status: true, message: "You have logged in!", newUser });
       });
     } catch (error) {
       console.log(error);
-      res
+      return res
         .status(HttpStatusCode.UNAUTHORIZED)
         .json({ status: false, message: "Could not log in!" });
     }
@@ -295,12 +291,12 @@ Authentication.post(
     const { jwt } = req.body;
     const verify = ValidateJWT(jwt);
     if (typeof verify === "string" || verify === false)
-      res
+      return res
         .status(HttpStatusCode.BAD_REQUEST)
         .json({ status: false, message: "user is not logged in" });
     else {
-      const user = await getUser(verify.email);
-      res
+      const user = await getUser(verify);
+      return res
         .status(HttpStatusCode.OK)
         .json({ status: true, message: "user is logged in", user });
     }
@@ -331,7 +327,7 @@ Authentication.post(
         SendEmail(email, code.toString());
       }
     }
-    res.status(HttpStatusCode.OK).json({
+    return res.status(HttpStatusCode.OK).json({
       status: true,
       message: "If user exists you will receive a email with a pass code.",
     });
@@ -364,11 +360,10 @@ Authentication.post(
       passwordResetRequests[email] != code
     ) {
       console.log(`email : ${email} or code ${resetCode} were not correct`);
-      res.status(HttpStatusCode.BAD_REQUEST).json({
+      return res.status(HttpStatusCode.BAD_REQUEST).json({
         status: false,
         message: "Failed to reset password!",
       });
-      return;
     }
 
     console.log("Setting new password");
@@ -390,12 +385,12 @@ Authentication.post(
         },
       });
       delete passwordResetRequests[email];
-      res
+      return res
         .status(HttpStatusCode.OK)
         .json({ status: true, message: "Successfully reset password!" });
     } catch (error) {
       console.log(error);
-      res
+      return res
         .status(HttpStatusCode.BAD_REQUEST)
         .json({ status: false, message: "Failed to reset password!" });
     }
