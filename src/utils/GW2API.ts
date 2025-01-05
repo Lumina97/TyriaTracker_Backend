@@ -16,6 +16,7 @@ const exchangeFreePercentage = parseInt(
 const api: GW2Api = new GW2Api({
   language: ApiLanguage.English,
   rateLimitRetry: true,
+  logOutput: false,
 });
 
 export const updateDungeonsFromGW2API = async () => {
