@@ -17,10 +17,15 @@ const toBoolean = (value: string) => {
   return ["true", "1", "yes"].includes(value.toLowerCase());
 };
 
+const updateLogging = toBoolean(
+  process.env.API_WRAPPER_LOGGING_UPDATES || "false"
+);
+const logging = toBoolean(process.env.API_WRAPPER_LOGGING || "false");
+
 const api: GW2Api = new GW2Api({
   language: ApiLanguage.English,
   rateLimitRetry: true,
-  logOutput: toBoolean(process.env.API_WRAPPER_LOGGING || "false"),
+  logOutput: updateLogging,
 });
 
 export const updateDungeonsFromGW2API = async () => {
@@ -282,6 +287,7 @@ export const getUserDailyCrafts = async (apiKey: string) => {
     token: apiKey,
     language: ApiLanguage.English,
     rateLimitRetry: true,
+    logOutput: logging,
   });
 
   try {
@@ -297,6 +303,7 @@ export const getUserWorldBosses = async (apiKey: string) => {
     token: apiKey,
     language: ApiLanguage.English,
     rateLimitRetry: true,
+    logOutput: logging,
   });
   try {
     return await userAPI.account.getWorldBosses();
@@ -311,6 +318,7 @@ export const getUserRaids = async (apiKey: string) => {
     token: apiKey,
     language: ApiLanguage.English,
     rateLimitRetry: true,
+    logOutput: logging,
   });
 
   try {
@@ -326,6 +334,7 @@ export const getUserWizardVault = async (apiKey: string) => {
     token: apiKey,
     language: ApiLanguage.English,
     rateLimitRetry: true,
+    logOutput: logging,
   });
 
   try {
@@ -349,6 +358,7 @@ export const getUserDungeons = async (apiKey: string) => {
     token: apiKey,
     language: ApiLanguage.English,
     rateLimitRetry: true,
+    logOutput: logging,
   });
 
   try {
