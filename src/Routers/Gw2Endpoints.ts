@@ -66,7 +66,13 @@ APIRouter.post(
     const userData = await getUserWorldBosses(req.body.apiKey);
     const worldData = await prisma.worldbosses.findMany();
 
-    res.status(HttpStatusCode.OK).json({ status: true, userData, worldData });
+    if (userData === null || worldData === null) {
+      return res.status(HttpStatusCode.NO_CONTENT).json({ status: false });
+    }
+
+    return res
+      .status(HttpStatusCode.OK)
+      .json({ status: true, userData, worldData });
   }
 );
 
@@ -88,6 +94,10 @@ APIRouter.post(
     const worldData = await prisma.raidWing.findMany({
       include: { events: true },
     });
+
+    if (userData === null || worldData === null) {
+      return res.status(HttpStatusCode.NO_CONTENT).json({ status: false });
+    }
 
     return res
       .status(HttpStatusCode.OK)
@@ -111,6 +121,9 @@ APIRouter.post(
     });
     const userData = await getUserDungeons(req.body.apiKey);
 
+    if (userData === null || worldData === null) {
+      return res.status(HttpStatusCode.NO_CONTENT).json({ status: false });
+    }
     return res
       .status(HttpStatusCode.OK)
       .json({ status: true, userData, worldData });
@@ -131,6 +144,10 @@ APIRouter.post(
     const worldData = await prisma.dailyCrafting.findMany();
     const userData = await getUserDailyCrafts(req.body.apiKey);
 
+    if (userData === null || worldData === null) {
+      return res.status(HttpStatusCode.NO_CONTENT).json({ status: false });
+    }
+
     return res
       .status(HttpStatusCode.OK)
       .json({ status: true, userData, worldData });
@@ -149,6 +166,9 @@ APIRouter.post(
   ValidateUserAndAPIKey(),
   async (req: Request, res: Response) => {
     const userData = await getUserWizardVault(req.body.apiKey);
+    if (userData === null) {
+      return res.status(HttpStatusCode.NO_CONTENT).json({ status: false });
+    }
 
     return res.status(HttpStatusCode.OK).json({ status: true, userData });
   }
@@ -166,7 +186,7 @@ APIRouter.post(
     } catch (error) {
       console.error(error);
       return res
-        .status(HttpStatusCode.SERVICE_UNAVAILABLE)
+        .status(HttpStatusCode.NO_CONTENT)
         .json({ status: false, message: "Failed to get all tradable items" });
     }
   }
@@ -200,7 +220,7 @@ APIRouter.post(
     if (items === null) {
       console.log("Getting all items has failed");
       return res
-        .status(HttpStatusCode.SERVICE_UNAVAILABLE)
+        .status(HttpStatusCode.NO_CONTENT)
         .json({ status: false, message: "Failed to get all tradable items" });
     }
 
@@ -226,7 +246,7 @@ APIRouter.post(
     if (item === null) {
       console.log("Getting tradable item by ID has failed");
       return res
-        .status(HttpStatusCode.SERVICE_UNAVAILABLE)
+        .status(HttpStatusCode.NO_CONTENT)
         .json({ status: false, message: "Failed to get tradable item!" });
     }
 
