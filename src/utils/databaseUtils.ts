@@ -115,13 +115,42 @@ export const getTradableItemById = async (id: number) => {
 
 export const cleanOldRecords = async () => {
   console.log("Starting cleaning");
+
+  //trim anything after 3 months and only keep 12am time
   await prisma.$queryRawUnsafe(`
-   DELETE FROM public."PriceHistory"
-	WHERE "timestamp" < NOW() - interval '1 Day'	
-	AND NOT (
-		  DATE_TRUNC('minute', "timestamp")::time = '00:00:00' OR
+      DELETE FROM public."PriceHistory"
+	    WHERE "timestamp" < NOW() - interval '3 Months'	
+	    AND NOT (
+		    DATE_TRUNC('minute', "timestamp")::time = '00:00:00'
+	    )`);
+
+  //trim anything from 1 - 3months and only keep 12 am and 12 pm
+  await prisma.$queryRawUnsafe(`
+    DELETE FROM public."PriceHistory"
+    WHERE "timestamp" BETWEEN NOW() - interval '3 Months' AND NOW() - interval '1 Month'
+    AND NOT (
+      DATE_TRUNC('minute', "timestamp")::time = '00:00:00' OR
       DATE_TRUNC('minute', "timestamp")::time = '12:00:00'
-	)
-  `);
+    )`);
+
+  //trim anything from 1 week to 1 month and keep entries from every 4 hours
+  await prisma.$queryRawUnsafe(`
+      DELETE FROM public."PriceHistory"
+      WHERE "timestamp" BETWEEN NOW() - interval '1 Month' AND NOW() - interval '1 Week'
+      AND NOT (
+        DATE_TRUNC('minute', "timestamp")::time = '00:00:00' OR
+        DATE_TRUNC('minute', "timestamp")::time = '12:00:00' OR
+        DATE_TRUNC('minute', "timestamp")::time = '04:00:00' OR
+        DATE_TRUNC('minute', "timestamp")::time = '08:00:00'
+      )`);
+
+  //trim anything from 3 days to 1 week and keep entries from every 4 hours
+  await prisma.$queryRawUnsafe(`
+      DELETE FROM public."PriceHistory"
+      WHERE "timestamp" BETWEEN NOW() - interval '1 Week' AND NOW() - interval '3 Days'
+      AND NOT (
+        EXTRACT(MINUTE FROM "timestamp") = 0
+      )`);
+
   console.log("Ended cleaning");
 };
