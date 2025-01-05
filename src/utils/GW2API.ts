@@ -13,10 +13,14 @@ const exchangeFreePercentage = parseInt(
   process.env.EXCHANGE_FREE_PERCENTAGE || "0.1"
 );
 
+const toBoolean = (value: string) => {
+  return ["true", "1", "yes"].includes(value.toLowerCase());
+};
+
 const api: GW2Api = new GW2Api({
   language: ApiLanguage.English,
   rateLimitRetry: true,
-  logOutput: false,
+  logOutput: toBoolean(process.env.API_WRAPPER_LOGGING || "false"),
 });
 
 export const updateDungeonsFromGW2API = async () => {
