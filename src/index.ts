@@ -24,7 +24,7 @@ cron.schedule("*/5 * * * *", async () => {
   console.log(`Finished scheduled API updates! It took: ${time} milliseconds`);
 });
 
-cron.schedule("0 0 0 * * *", async () => {
+cron.schedule("0 0 * * *", async () => {
   const start = performance.now();
   console.log(`Running scheduled Database clean!`);
   await cleanOldRecords();
