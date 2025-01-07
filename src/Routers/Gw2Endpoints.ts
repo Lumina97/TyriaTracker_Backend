@@ -87,9 +87,6 @@ APIRouter.post(
   }),
   ValidateUserAndAPIKey(),
   async (req: Request, res: Response) => {
-    console.log(
-      `request from email: ${req.body.email} with key:\n${req.body.apiKey} `
-    );
     const userData = await getUserRaids(req.body.apiKey);
     const worldData = await prisma.raidWing.findMany({
       include: { events: true },
@@ -207,7 +204,6 @@ APIRouter.post(
     }),
   }),
   async (req: Request, res: Response) => {
-    console.log("Getting all tradable items");
     const { start, amount, orderDirection, orderCriteria } = req.body;
     let items = await getTradableItemsFromRange(
       start,
@@ -218,13 +214,11 @@ APIRouter.post(
     let amountOfItems = await getTradableItemsLength();
 
     if (items === null) {
-      console.log("Getting all items has failed");
+      console.error("Getting all items has failed");
       return res
         .status(HttpStatusCode.NO_CONTENT)
         .json({ status: false, message: "Failed to get all tradable items" });
     }
-
-    console.log("returning result");
     return res
       .status(HttpStatusCode.OK)
       .json({ status: true, data: items, itemCount: amountOfItems });
@@ -239,18 +233,16 @@ APIRouter.post(
     }),
   }),
   async (req: Request, res: Response) => {
-    console.log("Getting tradable item from ID!");
     const { id } = req.body;
     let item = await getTradableItemById(parseInt(id));
 
     if (item === null) {
-      console.log("Getting tradable item by ID has failed");
+      console.error("Getting tradable item by ID has failed");
       return res
         .status(HttpStatusCode.NO_CONTENT)
         .json({ status: false, message: "Failed to get tradable item!" });
     }
 
-    console.log("returning result");
     return res.status(HttpStatusCode.OK).json({ status: true, data: item });
   }
 );

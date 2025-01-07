@@ -44,7 +44,7 @@ const checkIfUserIsAuthorized = () => {
 
     const isAuth = await ValidateJWT(jwt);
     if (isAuth === false || email != isAuth) {
-      console.log(`is not authorized`);
+      console.error(`is not authorized`);
       return res
         .status(HttpStatusCode.UNAUTHORIZED)
         .json({ status: false, message: "User is not authorized!" });
@@ -59,7 +59,6 @@ Authentication.post(
   validateCreateUser(createUserSchema),
   async (req: Request, res: Response) => {
     const { email, password, APIKey } = req.body;
-    console.log(`Account create request with email: ${email}`);
     const user = await getUser(email);
     if (user) {
       console.error("could not create user. Already existed!");
@@ -95,7 +94,6 @@ Authentication.post(
         message: "There was an error creating user!",
       });
     }
-    console.log(`Created user ${email}`);
     const newUser = {
       email,
       jwt,
@@ -146,8 +144,6 @@ Authentication.patch(
     if (passwordHash) data.passwordHash = passwordHash;
     if (newUser.email) data.email = newUser.email;
 
-    console.log(JSON.stringify(data));
-
     try {
       //update user with params
       const updated = await prisma.user.update({
@@ -161,14 +157,12 @@ Authentication.patch(
       //@ts-ignore
       updated.jwt = newUser.jwt;
 
-      console.log(`updated ${updated.email}`);
-      console.log(`new user: ${JSON.stringify(updated)}`);
       const noPasswordUser = (({ passwordHash, ...user }) => user)(updated);
       return res
         .status(HttpStatusCode.OK)
         .json({ status: true, updatedUser: noPasswordUser });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return res
         .status(HttpStatusCode.BAD_REQUEST)
         .json({ status: false, message: "There was an issue updating User" });
@@ -234,13 +228,12 @@ Authentication.post(
       .strict(),
   }),
   async (req: Request, res: Response) => {
-    console.log(`login request from email: ${req.body.email}`);
     const { email, password } = req.body;
 
     try {
       const user = await getUser(email);
       if (!user) {
-        console.log("Unable to log in - no user found");
+        console.error("Unable to log in - no user found");
         return res
           .status(HttpStatusCode.UNAUTHORIZED)
           .json({ status: false, message: "Could not log in!" });
@@ -249,7 +242,7 @@ Authentication.post(
 
       validatePassword(password, user.passwordHash).then((result) => {
         if (result === false) {
-          console.log(`password compare failed`);
+          console.error(`password compare failed`);
           return res
             .status(HttpStatusCode.UNAUTHORIZED)
             .json({ status: false, message: "Could not log in!" });
@@ -267,7 +260,7 @@ Authentication.post(
           .json({ status: true, message: "You have logged in!", newUser });
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return res
         .status(HttpStatusCode.UNAUTHORIZED)
         .json({ status: false, message: "Could not log in!" });
@@ -287,7 +280,6 @@ Authentication.post(
     }),
   }),
   async (req: Request, res: Response) => {
-    console.log("logged in status request");
     const { jwt } = req.body;
     const verify = ValidateJWT(jwt);
     if (typeof verify === "string" || verify === false)
@@ -318,9 +310,6 @@ Authentication.post(
     const user = await getUser(email);
     if (user) {
       const code = Math.floor(100000 + Math.random() * 900000);
-      console.log(
-        `found user with email: ${email}, sending reset code: ${code}`
-      );
 
       if (!(email in passwordResetRequests)) {
         passwordResetRequests[email] = code;
@@ -354,23 +343,18 @@ Authentication.post(
     const code = parseInt(resetCode);
 
     if (
-      // email never made a request or given reset code was incorrect
       !(email in passwordResetRequests) ||
       !code ||
       passwordResetRequests[email] != code
     ) {
-      console.log(`email : ${email} or code ${resetCode} were not correct`);
+      console.error(`email : ${email} or code ${resetCode} were not correct`);
       return res.status(HttpStatusCode.BAD_REQUEST).json({
         status: false,
         message: "Failed to reset password!",
       });
     }
 
-    console.log("Setting new password");
-    //check if password changed and create a new hash if so
     let passwordHash = await encryptPassword(newPassword);
-
-    //create a new user object with only data that changed
     const data: TUser = {};
     data.passwordHash = passwordHash;
     data.email = email;
@@ -389,7 +373,7 @@ Authentication.post(
         .status(HttpStatusCode.OK)
         .json({ status: true, message: "Successfully reset password!" });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return res
         .status(HttpStatusCode.BAD_REQUEST)
         .json({ status: false, message: "Failed to reset password!" });

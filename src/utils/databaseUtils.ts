@@ -21,7 +21,7 @@ initialize();
 
 export const getItemPricingDataFromDatabase = async (itemName: string) => {
   if (itemName.length === 0) {
-    console.log("given name was empty! returning");
+    console.error("given name was empty! returning");
     return null;
   }
 };
@@ -32,7 +32,6 @@ export const getTradableItemsFromRange = async (
   orderField: string,
   orderDirection: Prisma.SortOrder
 ) => {
-  const startTime = performance.now();
   try {
     if (orderField === "") orderField = "demand";
 
@@ -49,10 +48,6 @@ export const getTradableItemsFromRange = async (
       take: amount,
     });
 
-    const endTime = performance.now();
-    console.log(
-      `getTradableItemsFromRange took: ${endTime - startTime} milliseconds`
-    );
     return items;
   } catch (error) {
     console.error(error);
@@ -114,8 +109,6 @@ export const getTradableItemById = async (id: number) => {
 };
 
 export const cleanOldRecords = async () => {
-  console.log("Starting cleaning");
-
   //trim anything after 3 months and only keep 12am time
   await prisma.$queryRawUnsafe(`
       DELETE FROM public."PriceHistory"
@@ -151,6 +144,4 @@ export const cleanOldRecords = async () => {
       AND NOT (
         EXTRACT(MINUTE FROM "timestamp") = 0
       )`);
-
-  console.log("Ended cleaning");
 };

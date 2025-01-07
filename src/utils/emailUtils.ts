@@ -2,7 +2,7 @@ import nodemailer from "nodemailer";
 
 export const SendEmail = (toEmail: string, code: string) => {
   if (!toEmail || !code) {
-    console.log("Email or code was NULL - unable to send email");
+    console.error("Email or code was NULL - unable to send email");
     return;
   }
 
@@ -10,7 +10,7 @@ export const SendEmail = (toEmail: string, code: string) => {
   const pass = process.env.EMAIL_PASS;
 
   if (!email || !pass) {
-    console.log("Unable to load email or password from env file");
+    console.error("Unable to load email or password from env file");
     return;
   }
 
@@ -31,9 +31,7 @@ export const SendEmail = (toEmail: string, code: string) => {
 
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
-      console.log(error);
-    } else {
-      console.log("Email sent: " + info.response);
+      console.error(error);
     }
   });
 };

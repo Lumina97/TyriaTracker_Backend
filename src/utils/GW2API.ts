@@ -38,8 +38,7 @@ export const updateDungeonsFromGW2API = async () => {
       });
       if (!exists) {
         try {
-          console.log(dungeon);
-          const newDungeon = await prisma.dungeon.create({
+          await prisma.dungeon.create({
             data: {
               name: dungeon.id,
               paths: {
@@ -50,11 +49,10 @@ export const updateDungeonsFromGW2API = async () => {
               },
             },
           });
-          console.log("Dungeon created:", newDungeon);
         } catch (error) {
           console.error("Error creating dungeon:", error);
         }
-      } else console.log("Dungeon already saved!");
+      }
     });
   });
 };
@@ -71,7 +69,7 @@ export const updateRaidsFromGW2API = async () => {
 
         if (!exists) {
           try {
-            const newRaid = await prisma.raidWing.create({
+            await prisma.raidWing.create({
               data: {
                 name: wing.id,
                 events: {
@@ -82,11 +80,10 @@ export const updateRaidsFromGW2API = async () => {
                 },
               },
             });
-            console.log("Raid created:", newRaid);
           } catch (error) {
             console.error("Error creating Raid:", error);
           }
-        } else console.log("Raid already saved!");
+        }
       });
     });
   });
@@ -103,16 +100,15 @@ export const updateDailyCraftingFromGW2API = async () => {
 
       if (!exists) {
         try {
-          const newCraft = await prisma.dailyCrafting.create({
+          await prisma.dailyCrafting.create({
             data: {
               name: craft,
             },
           });
-          console.log("Daily Craft created:", newCraft);
         } catch (error) {
           console.error("Error creating Daily Craft:", error);
         }
-      } else console.log("Daily Craft already saved!");
+      }
     });
   });
 };
@@ -127,16 +123,15 @@ export const updateWorldBossesFromGW2API = async () => {
       });
       if (!exists) {
         try {
-          const newCraft = await prisma.worldbosses.create({
+          await prisma.worldbosses.create({
             data: {
               name: boss,
             },
           });
-          console.log("WorldBoss created:", newCraft);
         } catch (error) {
           console.error("Error creating WorldBoss:", error);
         }
-      } else console.log("WorldBoss already saved!");
+      }
     });
   });
 };
@@ -151,10 +146,8 @@ export const updateItemIDSFromGW2Api = async () => {
       .filter((id) => !localIds.includes(id))
       .map((id) => ({ id }));
     if (newIds.length === 0) {
-      console.log("No new id's to add to database!");
       return;
     }
-    console.log(`new ids: ${newIds.map((id) => console.log(id))}`);
     await prisma.items.createMany({
       data: newIds,
     });
@@ -175,7 +168,6 @@ export const updateTradableItemsFromFile = async () => {
 
     const newIDS = ids.filter((id) => !localIds.includes(id));
     if (newIDS.length === 0) {
-      console.log("No new items found!");
       return;
     }
 
@@ -293,7 +285,7 @@ export const getUserDailyCrafts = async (apiKey: string) => {
   try {
     return await userAPI.account.getDailyCrafts();
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return null;
   }
 };
@@ -308,7 +300,7 @@ export const getUserWorldBosses = async (apiKey: string) => {
   try {
     return await userAPI.account.getWorldBosses();
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return null;
   }
 };
@@ -324,7 +316,7 @@ export const getUserRaids = async (apiKey: string) => {
   try {
     return await userAPI.account.getRaids();
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return null;
   }
 };
@@ -348,7 +340,7 @@ export const getUserWizardVault = async (apiKey: string) => {
     };
     return vault;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return null;
   }
 };
@@ -364,7 +356,7 @@ export const getUserDungeons = async (apiKey: string) => {
   try {
     return await userAPI.account.getDungeons();
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return null;
   }
 };
