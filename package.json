@@ -10,12 +10,13 @@
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "express": "^4.21.1",
-    "guildwars2-ts": "file:thirdParty_modules/guildwars2-ts",
+    "guildwars2-ts": "file:./thirdParty_modules/guildwars2-ts",
     "jsonwebtoken": "^9.0.2",
     "node-cron": "^3.0.3",
     "node-ts": "^6.1.3",
     "nodemailer": "^6.9.16",
     "zod": "^3.23.8",
+    "prisma": "^6.2.0",
     "zod-express-middleware": "^1.4.0"
   },
   "devDependencies": {
@@ -27,12 +28,12 @@
     "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^6.4.17",
     "nodemon": "^3.1.7",
-    "prisma": "^6.1.0",
+    "prisma": "^6.2.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.3"
   },
   "engines": {
     "node": ">=20.14",
-    "npm": ">=10.7"
+    "npm": ">=9.6.7"
   }
 }
