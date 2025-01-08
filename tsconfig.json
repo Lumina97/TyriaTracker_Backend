@@ -5,7 +5,11 @@
     "module": "CommonJS",
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "guildwars2-ts": ["thirdParty_modules/guildwars2-ts"]
+    }
   },
   "include": ["src"],
   "exclude": ["node_modules"]

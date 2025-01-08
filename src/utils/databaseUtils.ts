@@ -108,6 +108,45 @@ export const getTradableItemById = async (id: number) => {
   });
 };
 
+export const getTradableItemsByPartialName = async (partialName: string) => {
+  try {
+    return await prisma.tradeableItems.findMany({
+      where: {
+        name: {
+          contains: partialName,
+          mode: "insensitive",
+        },
+      },
+      include: {
+        LatestPrice: true,
+      },
+      take: 5,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+  return [];
+};
+
+export const getTradableItemByName = async (name: string) => {
+  try {
+    return await prisma.tradeableItems.findFirst({
+      where: {
+        name: {
+          equals: name,
+        },
+      },
+      include: {
+        PriceHistory: true,
+        LatestPrice: true,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+  }
+  return [];
+};
+
 export const cleanOldRecords = async () => {
   //trim anything after 3 months and only keep 12am time
   await prisma.$queryRawUnsafe(`

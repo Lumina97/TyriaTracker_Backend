@@ -10,7 +10,9 @@ import {
 } from "../utils/GW2API";
 import {
   getTradableItemById,
+  getTradableItemByName,
   getTradableItemIdsFromDatabase,
+  getTradableItemsByPartialName,
   getTradableItemsFromRange,
   getTradableItemsLength,
   prisma,
@@ -243,6 +245,48 @@ APIRouter.post(
         .json({ status: false, message: "Failed to get tradable item!" });
     }
 
+    return res.status(HttpStatusCode.OK).json({ status: true, data: item });
+  }
+);
+
+APIRouter.post(
+  "/api/tradingPost/getItemNames",
+  validateRequest({
+    body: z.object({
+      name: z.string({ required_error: "partial name is required!" }),
+    }),
+  }),
+  async (req: Request, res: Response) => {
+    console.log("Getting item names");
+    const { name } = req.body;
+    const items = await getTradableItemsByPartialName(name);
+    console.log("Items: ", items);
+    if (items.length === 0) {
+      return res
+        .status(HttpStatusCode.NO_CONTENT)
+        .json({ status: false, message: "No items found!" });
+    }
+    return res.status(HttpStatusCode.OK).json({ status: true, data: items });
+  }
+);
+
+APIRouter.post(
+  "/api/tradingPost/getItemByName",
+  validateRequest({
+    body: z.object({
+      name: z.string({ required_error: "Name is required!" }),
+    }),
+  }),
+  async (req: Request, res: Response) => {
+    console.log("Getting item by name");
+    const { name } = req.body;
+    const item = await getTradableItemByName(name);
+    console.log(`item: ${item}`);
+    if (!item) {
+      return res
+        .status(HttpStatusCode.NO_CONTENT)
+        .json({ status: false, message: "No items found!" });
+    }
     return res.status(HttpStatusCode.OK).json({ status: true, data: item });
   }
 );
