@@ -257,10 +257,8 @@ APIRouter.post(
     }),
   }),
   async (req: Request, res: Response) => {
-    console.log("Getting item names");
     const { name } = req.body;
     const items = await getTradableItemsByPartialName(name);
-    console.log("Items: ", items);
     if (items.length === 0) {
       return res
         .status(HttpStatusCode.NO_CONTENT)
@@ -278,10 +276,8 @@ APIRouter.post(
     }),
   }),
   async (req: Request, res: Response) => {
-    console.log("Getting item by name");
     const { name } = req.body;
     const item = await getTradableItemByName(name);
-    console.log(`item: ${item}`);
     if (!item) {
       return res
         .status(HttpStatusCode.NO_CONTENT)
