@@ -6,7 +6,7 @@ It has a complete login system utilizing JWT and bcrypt to securely store passwo
 
 How to run :
 
-  - Clone repository to local machine
+  - Clone the repository dev branch to local machine
   - In `schema.prisma` change the `datasource db` to
     `datasource db {
         provider = "sqlite"
