@@ -1,4 +1,4 @@
-#Tyria Tracker Backend
+# Tyria Tracker Backend
 
 Welcome to the Tyria Tracker Backend.
 This is where the applications stores the all the data coming from the Guild Wars 2 API in a Database using Prisma, as well as handeling all requests coming from the front end.
