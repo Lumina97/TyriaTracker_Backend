@@ -114,7 +114,8 @@ export const getTradableItemsByPartialName = async (partialName: string) => {
       where: {
         name: {
           contains: partialName,
-          mode: "insensitive",
+          //postgreSQL only
+          //  mode: "insensitive",
         },
       },
       include: {

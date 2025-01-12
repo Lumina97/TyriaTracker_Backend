@@ -36,6 +36,7 @@ const ValidateUserAndAPIKey = () => {
     const { email, jwt } = req.body;
     const isAuth = await ValidateJWT(jwt);
     if (isAuth === false || email != isAuth) {
+      console.log("user not authorized");
       res
         .status(HttpStatusCode.BAD_REQUEST)
         .json({ status: false, message: "User is not authorized!" });
@@ -43,6 +44,8 @@ const ValidateUserAndAPIKey = () => {
     }
     const key = await getUserAPIKeyFromEmail(email);
     if (key === null) {
+      console.log("user has no api key");
+
       res
         .status(HttpStatusCode.OK)
         .json({ status: false, message: "User does not have an API key set!" });
@@ -89,6 +92,7 @@ APIRouter.post(
   }),
   ValidateUserAndAPIKey(),
   async (req: Request, res: Response) => {
+    const key = req.body.apiKey;
     const userData = await getUserRaids(req.body.apiKey);
     const worldData = await prisma.raidWing.findMany({
       include: { events: true },
