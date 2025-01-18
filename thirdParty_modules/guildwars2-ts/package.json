@@ -6,7 +6,12 @@
 	"main": "dist/index.js",
 	"module": "dist/index.mjs",
 	"types": "dist/index.d.ts",
-	"files": ["dist/", "LICENSE", "README.md", "package.json"],
+	"files": [
+		"dist/",
+		"LICENSE",
+		"README.md",
+		"package.json"
+	],
 	"packageManager": "pnpm@9.14.2",
 	"scripts": {
 		"prepare": "npm run lint && npm run build",
@@ -17,7 +22,14 @@
 		"test:coverage": "jest --coverage"
 	},
 	"license": "ISC",
-	"keywords": ["guildwars", "guildwars2", "guild wars", "guild wars 2", "gw", "gw2"],
+	"keywords": [
+		"guildwars",
+		"guildwars2",
+		"guild wars",
+		"guild wars 2",
+		"gw",
+		"gw2"
+	],
 	"dependencies": {
 		"axios": "1.7.8",
 		"guildwars2-ts": "file:",

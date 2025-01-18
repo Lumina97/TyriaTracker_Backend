@@ -30,7 +30,7 @@ export const getTradableItemsFromRange = async (
   start: number,
   amount: number,
   orderField: string,
-  orderDirection: Prisma.SortOrder
+  orderDirection: Prisma.SortOrder,
 ) => {
   try {
     if (orderField === "") orderField = "demand";
@@ -121,7 +121,7 @@ export const getTradableItemsByPartialName = async (partialName: string) => {
       include: {
         LatestPrice: true,
       },
-      take: 5,
+      take: 50,
     });
   } catch (error) {
     console.error(error);
