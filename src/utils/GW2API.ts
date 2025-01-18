@@ -31,7 +31,7 @@ const api: GW2Api = new GW2Api({
 export const updateDungeonsFromGW2API = async () => {
   await api.dungeons.get("all").then((dungeons) => {
     dungeons.map(async (dungeon) => {
-      const exists = await prisma.dailyCrafting.findFirst({
+      const exists = await prisma.dungeon.findFirst({
         where: {
           name: dungeon.id,
         },
@@ -116,7 +116,7 @@ export const updateDailyCraftingFromGW2API = async () => {
 export const updateWorldBossesFromGW2API = async () => {
   await api.worldBosses.get().then((bosses) => {
     bosses.map(async (boss) => {
-      const exists = await prisma.dailyCrafting.findFirst({
+      const exists = await prisma.worldbosses.findFirst({
         where: {
           name: boss,
         },
@@ -171,12 +171,13 @@ export const updateTradableItemsFromFile = async () => {
       return;
     }
 
-    const batchSize = newIDS.length % 4;
+    const batchSize = 200;
     const batches = [];
     for (let i = 0; i < ids.length; i += batchSize) {
       batches.push(ids.slice(i, i + batchSize));
     }
 
+    const finalData = [];
     for (let i = 0; i < batches.length; i++) {
       const data = await api.items.get(batches[i]);
       const filtered = data.map(
@@ -189,9 +190,11 @@ export const updateTradableItemsFromFile = async () => {
           icon,
         })
       );
-      //@ts-ignore
-      await prisma.tradeableItems.createMany({ data: filtered });
+      finalData.push(filtered);
     }
+
+    //@ts-ignore
+    await prisma.tradeableItems.createMany({ data: finalData.flat(1) });
   } catch (err) {
     console.error(err);
   }
