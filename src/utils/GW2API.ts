@@ -147,6 +147,7 @@ export const updateItemIDSFromGW2Api = async () => {
 };
 
 export const updateTradableItemsFromFile = async () => {
+  return;
   try {
     const ids: number[] = await api.commerce.getListings();
     const localIds = (
