@@ -1,0 +1,20 @@
+{
+	"compilerOptions": {
+		"target": "es2022",
+		"lib": ["es2022"],
+		"types": ["node", "jest"],
+		"declaration": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"allowJs": false,
+		"resolveJsonModule": true,
+		"moduleDetection": "force",
+		"moduleResolution": "Bundler",
+		"noEmit": true,
+		"forceConsistentCasingInFileNames": true,
+		"strict": true,
+		"strictPropertyInitialization": false,
+		"noUncheckedIndexedAccess": true
+	},
+	"include": ["."]
+}
