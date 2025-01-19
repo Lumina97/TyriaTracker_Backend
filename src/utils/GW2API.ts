@@ -1,5 +1,4 @@
-import { GW2Api, ApiLanguage } from "guildwars2-ts";
-import fs from "fs";
+import { GW2Api, ApiLanguage, setLogLevel, LogLevel } from "guildwars2-ts";
 import {
   getAllItemIDsFromDatabase,
   getTradableItemIdsFromDatabase,
@@ -7,26 +6,17 @@ import {
 } from "./databaseUtils";
 
 const listingFeePercentage = parseInt(
-  process.env.LISTING_FEE_PERCENTAGE || "0.05"
+  process.env.LISTING_FEE_PERCENTAGE || "0.05",
 );
 const exchangeFreePercentage = parseInt(
-  process.env.EXCHANGE_FREE_PERCENTAGE || "0.1"
+  process.env.EXCHANGE_FREE_PERCENTAGE || "0.1",
 );
-
-const toBoolean = (value: string) => {
-  return ["true", "1", "yes"].includes(value.toLowerCase());
-};
-
-const updateLogging = toBoolean(
-  process.env.API_WRAPPER_LOGGING_UPDATES || "false"
-);
-const logging = toBoolean(process.env.API_WRAPPER_LOGGING || "false");
 
 const api: GW2Api = new GW2Api({
   language: ApiLanguage.English,
   rateLimitRetry: true,
-  logOutput: updateLogging,
 });
+setLogLevel(LogLevel.warn);
 
 export const updateDungeonsFromGW2API = async () => {
   await api.dungeons.get("all").then((dungeons) => {
@@ -157,9 +147,9 @@ export const updateItemIDSFromGW2Api = async () => {
 };
 
 export const updateTradableItemsFromFile = async () => {
+  return;
   try {
-    const data = fs.readFileSync("ids.txt", "utf8");
-    const ids: number[] = JSON.parse(data);
+    const ids: number[] = await api.commerce.getListings();
     const localIds = (
       await prisma.tradeableItems.findMany({
         select: { id: true },
@@ -188,7 +178,7 @@ export const updateTradableItemsFromFile = async () => {
           rarity,
           vendorValue: vendor_value,
           icon,
-        })
+        }),
       );
       finalData.push(filtered);
     }
@@ -236,7 +226,7 @@ export const getPricingDataForAllTradableItems = async () => {
           demand,
           profit: calculateProfit(buyPrice, sellPrice),
           ROI: (calculateProfit(buyPrice, sellPrice) / buyPrice) * 100,
-        })
+        }),
       );
 
       newLatestPrices.push(prices);
@@ -268,7 +258,7 @@ export const updateAllItemsFromIDs = async () => {
           vendorValue: vendor_value,
           name,
           icon,
-        })
+        }),
       );
       await prisma.items.createMany({ data: prices });
     }
@@ -282,7 +272,6 @@ export const getUserDailyCrafts = async (apiKey: string) => {
     token: apiKey,
     language: ApiLanguage.English,
     rateLimitRetry: true,
-    logOutput: logging,
   });
 
   try {
@@ -298,7 +287,6 @@ export const getUserWorldBosses = async (apiKey: string) => {
     token: apiKey,
     language: ApiLanguage.English,
     rateLimitRetry: true,
-    logOutput: logging,
   });
   try {
     return await userAPI.account.getWorldBosses();
@@ -313,9 +301,7 @@ export const getUserRaids = async (apiKey: string) => {
     token: apiKey,
     language: ApiLanguage.English,
     rateLimitRetry: true,
-    logOutput: logging,
   });
-
   try {
     return await userAPI.account.getRaids();
   } catch (error) {
@@ -329,13 +315,14 @@ export const getUserWizardVault = async (apiKey: string) => {
     token: apiKey,
     language: ApiLanguage.English,
     rateLimitRetry: true,
-    logOutput: logging,
   });
 
   try {
-    const daily = await userAPI.account.getWizardsVaultDaily();
-    const weekly = await userAPI.account.getWizardsVaultWeekly();
-    const special = await userAPI.account.getWizardsVaultSpecial();
+    const [daily, weekly, special] = await Promise.all([
+      await userAPI.account.getWizardsVaultDaily(),
+      await userAPI.account.getWizardsVaultWeekly(),
+      await userAPI.account.getWizardsVaultSpecial(),
+    ]);
     const vault = {
       daily,
       weekly,
@@ -353,7 +340,6 @@ export const getUserDungeons = async (apiKey: string) => {
     token: apiKey,
     language: ApiLanguage.English,
     rateLimitRetry: true,
-    logOutput: logging,
   });
 
   try {

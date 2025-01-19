@@ -3,7 +3,7 @@ import {
   updateDailyCraftingFromGW2API,
   updateDungeonsFromGW2API,
   updateRaidsFromGW2API,
-  updateTradableItemsFromFile,
+  updateAllTradableItems,
   updateWorldBossesFromGW2API,
 } from "./GW2API";
 
@@ -23,7 +23,7 @@ export const InitializeDatabase = async () => {
 
     console.log("Creating Tradable Items Table...");
     console.log("This will take a while\n");
-    await updateTradableItemsFromFile();
+    await updateAllTradableItems();
 
     console.log("Creating test user");
     await prisma.user.create({
