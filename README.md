@@ -16,7 +16,7 @@ How to run :
   - Then run `npm i`
   - Run `npx prisma geneate`
   - Run `npx prisma migrate dev`
-  - If ts-node is not installed go ahead and install that and then run `npx ts-node src/utils/tils.ts` and this will initialize the Database.
+  - If ts-node is not installed go ahead and install that and then run `npx ts-node src/utils/utils.ts` and this will initialize the Database.
     (this will take some time and also throw a bunc of errors towards the end, that is because the Typescript wrapper for the Guildwars 2 api that I am using
      is not up to date with the most recent expansion of the game)
   - from here everything should be set up correctly and you can run `npx nodemon` which will launch a local backend server
