@@ -1,0 +1,15 @@
+{
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": ["config:recommended", ":disableDependencyDashboard"],
+	"assignees": ["dinckelman"],
+	"baseBranches": ["dev"],
+	"packageRules": [
+		{
+			"matchUpdateTypes": ["minor", "patch"],
+			"automerge": true
+		}
+	],
+	"automerge": false,
+	"automergeType": "pr",
+	"automergeStrategy": "squash"
+}
