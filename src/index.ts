@@ -70,17 +70,6 @@ cron.schedule("15 */12 * * *", async () => {
   );
 });
 
-(async () => {
-  console.log("Running DB Clean Test");
-  await prisma.$queryRawUnsafe(`
-        DELETE FROM public."PriceHistory"
-        WHERE "timestamp" BETWEEN NOW() - interval '1 Week' AND NOW() - interval '3 Days'
-        AND NOT (
-          EXTRACT(MINUTE FROM "timestamp") = 0
-        )`);
-  console.log("Ending DB Clean Test");
-})();
-
 app.listen(port, () => {
   console.log(`Started Tyria Tracker backend on port ${port}`);
 });
