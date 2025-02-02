@@ -5,7 +5,7 @@ import { APIRouter } from "./Routers/Gw2Endpoints";
 import cron from "node-cron";
 import { getPricingDataForAllTradableItems } from "./utils/GW2API";
 import {
-  cleanRecords1MonthTo3Motnhs,
+  cleanRecords1MonthTo3Months as cleanRecords1MonthTo3Months,
   cleanRecords1WeekTo1Month,
   cleanRecords3DaysTo1Week,
   cleanRecordsPast3Months,
@@ -40,7 +40,7 @@ cron.schedule("0 */12 * * *", async () => {
   );
 });
 
-cron.schedule("5 */12 * * *", async () => {
+cron.schedule("10 */12 * * *", async () => {
   const start = performance.now();
   console.log(`Running scheduled Database clean for 1Week  - 1Month!`);
   await cleanRecords1WeekTo1Month();
@@ -50,17 +50,17 @@ cron.schedule("5 */12 * * *", async () => {
   );
 });
 
-cron.schedule("10 */12 * * *", async () => {
+cron.schedule("20 */12 * * *", async () => {
   const start = performance.now();
   console.log(`Running scheduled Database clean for 1Month  - 3Months!`);
-  await cleanRecords1MonthTo3Motnhs();
+  await cleanRecords1MonthTo3Months();
   const time = performance.now() - start;
   console.log(
     `Finished scheduled Database clean for 1Month  - 3Months It took: ${time} milliseconds`
   );
 });
 
-cron.schedule("15 */12 * * *", async () => {
+cron.schedule("30 */12 * * *", async () => {
   const start = performance.now();
   console.log(`Running scheduled Database clean past 3Months!`);
   await cleanRecordsPast3Months();
